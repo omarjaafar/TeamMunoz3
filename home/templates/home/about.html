@@ -1,9 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>About page</title>
-</head>
-<body>
-  <h1>Welcome to the About Page</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<div class="p-3">
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col-md-6 mx-auto mb-3">
+        <h2>About</h2>
+        <hr />
+        <p>
+          At Outdeed, we connect job seekers with opportunities that match their
+          skills, interests, and career goals. Explore a wide range of positions
+          from entry-level roles to specialized careers, and build a professional
+          profile that helps recruiters discover your potential.
+        </p>
+        <p>
+          Discover the convenience of our platform, where you can search and
+          filter jobs by title, skills, location, and more—all in one place.
+          With personalized recommendations and interactive tools, finding your
+          next career opportunity has never been easier.
+        </p>
+      </div>
+      <div class="col-md-6 mx-auto mb-3 text-center">
+        <img src="{% static 'img/about.jpg' %}" class="max-width-100" alt="about" />
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
