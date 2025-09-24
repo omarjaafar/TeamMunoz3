@@ -18,7 +18,7 @@ class Job(models.Model):
 
     # this is a feature used by the system to know what jobs a recruiter has posted. it won't be shown to
     # the job seekers 
-    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs')
+    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs', null=True, blank=True)         
 
     def __str__(self):
         return f"{self.title} at {self.company}"

@@ -51,11 +51,20 @@
 </div>
 
 
-<div class="d-flex gap-2">
-<button class="btn btn-success" type="submit">Save</button>
-<a class="btn btn-secondary" href="{% url 'jobs.index' %}">Cancel</a>
-</div>
-</form>
+<div class="d-flex align-items-center gap-2">
+  <button class="btn btn-success" type="submit">Save</button>
+  <a class="btn btn-secondary" href="{% url 'jobs.index' %}">Cancel</a>
+
+  {% if template_data.job %}
+    <button
+      class="btn btn-danger ms-auto"
+      type="submit"
+      formaction="{% url 'jobs.delete' template_data.job.id %}"
+      formmethod="post"
+      onclick="return confirm('Delete this job permanently?');">
+      Delete
+    </button>
+  {% endif %}
 </div>
 </div>
 {% endblock content %}

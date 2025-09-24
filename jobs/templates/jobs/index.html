@@ -7,14 +7,17 @@
 <div class="d-flex align-items-center flex-wrap">
 <a class="btn btn-primary" href="{% url 'jobs.create' %}">Add Job</a>
 
-
 {% for job in template_data.jobs %}
-<a class="btn btn-outline-secondary" href="{% url 'jobs.edit' job.id %}">
-Job {{ forloop.counter }}
-</a>
-{% empty %}
-<span class="text-muted">No jobs yet. Click “Add Job”.</span>
-{% endfor %}
+    <a class="btn btn-outline-secondary"
+        href="{% url 'jobs.edit' job.id %}"
+        title="{{ job.title|default:'Untitled' }} — {{ job.company|default:'Company' }}">
+        {{ job.title|default:"Untitled"|truncatechars:24 }}
+        {% if job.company %} — {{ job.company|truncatechars:18 }}{% endif %}
+    </a>
+  {% empty %}
+    <span class="text-muted"> No jobs yet. Click “Add Job”.</span>
+  {% endfor %}
+
 </div>
 </div>
 </div>
