@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-3">
+<div class="container">
+<h2 class="mb-3">{{ template_data.title }}</h2>
+
+<div class="d-flex align-items-center flex-wrap">
+<a class="btn btn-primary" href="{% url 'jobs.create' %}">Add Job</a>
+
+
+{% for job in template_data.jobs %}
+<a class="btn btn-outline-secondary" href="{% url 'jobs.edit' job.id %}">
+Job {{ forloop.counter }}
+</a>
+{% empty %}
+<span class="text-muted">No jobs yet. Click “Add Job”.</span>
+{% endfor %}
+</div>
+</div>
+</div>
+{% endblock content %}

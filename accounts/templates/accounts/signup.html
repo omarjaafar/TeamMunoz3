@@ -11,9 +11,16 @@
             <form method="POST">
               {% csrf_token %}
               {{ template_data.form.as_p }}
-              <button type="submit"
-                class="btn bg-dark text-white">Sign Up
-              </button>
+                <!-- dropdown menu for user to select their role of choice -->
+                <p>
+                  <label for="id_role">Create account as:</label>
+                  <select name="role" id="id_role" class="form-select">
+                    <option value="JOB_SEEKER">Job Seeker</option>
+                    <option value="RECRUITER">Recruiter</option>
+                    <option value="ADMIN">Administrator</option>
+                  </select>
+                </p>
+              <button type="submit" class="btn bg-dark text-white">Sign Up</button>
             </form>
           </div>
         </div>

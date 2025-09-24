@@ -15,12 +15,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body class="d-flex flex-column min-vh-100">
-    <!-- Header -->
+    
+    <!-- Header: this part contains the stuff that will be displayed on the navbar-->
     <nav class="p-3 navbar navbar-dark bg-dark navbar-expand-lg">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home.index' %}">
           <img src="{% static 'img/logo.png' %}" alt="logo" height="40" />
         </a>
+        <!-- search bar feature (only for Job Seeker or Recruiter) -->
+        {% if user.is_authenticated and user.profile %}  
+          {% if user.profile.role == 'JOB_SEEKER' or user.profile.role == 'RECRUITER' %} 
+          <form action="/search" method="GET">
+            <input type="search" name="SearchBar" placeholder="Search...">
+            <button type="submit">Search</button>
+          </form>
+          {% endif %}
+        {% endif %}
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
         <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#navbarNavAltMarkup"
@@ -33,7 +50,32 @@
           <div class="navbar-nav ms-auto navbar-ml">
             <a class="nav-link" href="{% url 'home.about' %}">About</a>
             <div class="vr bg-white mx-2 d-none d-lg-block"></div>
+            {% if user.is_authenticated %}
+            <!-- now based on the role that the user selected we will have different links on the navbar
+                 we check if profile exits and if what role the user is  -->
+              {% if user.profile and user.profile.role == 'JOB_SEEKER' %}
+                <a class="nav-link" href="{% url 'seeker.apply' %}">Apply</a>
+                <a class="nav-link" href="{% url 'seeker.status' %}">Status</a>
+                <a class="nav-link" href="{% url 'seeker.settings' %}">Settings</a>
+              {% elif user.profile and user.profile.role == 'RECRUITER' %}
+                <a class="nav-link" href="{% url 'jobs.index' %}">Post Job</a>
+                <a class="nav-link" href="{% url 'recruiter.messages' %}">Messages</a>
+              {% elif user.profile and user.profile.role == 'ADMIN' %}
+                <a class="nav-link" href="{% url 'admin.edit_posts' %}">Edit Posts</a>
+            {% endif %}
+
+            <!-- want to display as Logout (user_name | role)  -->
+            <a class="nav-link"
+                href="{% url 'accounts.logout' %}"> Logout (
+                {{user.username}} | 
+                  {% if user.profile %}
+                  {{user.profile.get_role_display}}
+                  {% endif %}
+                )</a>
+            {% else %}
+            <a class="nav-link" href="{% url 'accounts.login' %}">Login</a>
             <a class="nav-link" href="{% url 'accounts.signup' %}">Sign Up</a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -84,7 +126,7 @@
 
         <div class="d-flex justify-content-between">
           <p>© Outdeed — Designed for CS 2340 Project</p>
-          <p>&copy; Copyright - 2024</p>
+          <p>&copy; Copyright - 2025</p>
         </div>
       </div>
     </footer>
