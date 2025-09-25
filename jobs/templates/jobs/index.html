@@ -1,24 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="p-3">
-<div class="container">
-<h2 class="mb-3">{{ template_data.title }}</h2>
+    <div class="container">
+        <h2 class="mb-3">{{ template_data.title }}</h2>
 
-<div class="d-flex align-items-center flex-wrap">
-<a class="btn btn-primary" href="{% url 'jobs.create' %}">Add Job</a>
+        <div class="d-flex align-items-center flex-wrap">
+            <a class="btn btn-primary" href="{% url 'jobs.create' %}">Add Job</a>
 
-{% for job in template_data.jobs %}
-    <a class="btn btn-outline-secondary"
-        href="{% url 'jobs.edit' job.id %}"
-        title="{{ job.title|default:'Untitled' }} — {{ job.company|default:'Company' }}">
-        {{ job.title|default:"Untitled"|truncatechars:24 }}
-        {% if job.company %} — {{ job.company|truncatechars:18 }}{% endif %}
-    </a>
-  {% empty %}
-    <span class="text-muted"> No jobs yet. Click “Add Job”.</span>
-  {% endfor %}
+            <!-- we loop over the list template_data.jobs that the user entered. the first line then creates a link to
+            the edit page for that job. now we display the job that has been posted in the format [Company - Job_Title]
+            the if statement just puts Untitled if the Company name has not been filled out in the job posting 
+            Also, at the end if there are no jobs created, the for loop won't run and hence we display the messsage in a 
+            span tag -->
+            {% for job in template_data.jobs %}
+            <a class="btn btn-outline-secondary" href="{% url 'jobs.edit' job.id %}"
+                title="{{ job.title|default:'Untitled' }} — {{ job.company|default:'Company' }}">
+                {{ job.title|default:"Untitled"|truncatechars:24 }}
+                {% if job.company %} — {{ job.company|truncatechars:18 }}{% endif %}
+            </a>
+            {% empty %}
+            <span class="text-muted"> No jobs yet. Click “Add Job”.</span>
+            {% endfor %}
 
-</div>
-</div>
+        </div>
+    </div>
 </div>
 {% endblock content %}

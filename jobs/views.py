@@ -7,8 +7,8 @@ from django.contrib import messages
 
 @login_required
 def index(request):
-    #first we go to the jobs table in the database, then give me the rows that are created by the currently
-    # logged in user, and sort the order by id
+    #first we go to the jobs table in the database, then give me the rows that are 
+    # created by the currently logged in user
     jobs = Job.objects.filter(posted_by=request.user)
     template_data = {
         'title': 'Post a Job',
@@ -16,9 +16,14 @@ def index(request):
     }
     return render(request, 'jobs/index.html', {'template_data' : template_data})
 
+# pk is a primary key that identifies a specific Job row in the database
+# when pk is None, we are creating a new job
+# when pk has a value, we edit that existing job
 @login_required
 def job_form(request, pk=None):
     job = None
+    # this checks if a pk for the job currently exists - if it doesn't return 404 error
+    # commenting this out would no longer show the data for each of the jobs posted!
     if pk is not None:
         job = get_object_or_404(Job, pk=pk, posted_by=request.user)
 
@@ -39,10 +44,13 @@ def job_form(request, pk=None):
             return redirect('jobs.edit', pk=job.pk)
 
         # update the existing instance, then redirect
+        # the for-loop below iterates through the (key, value) pairs in the 'fields' dict
+        # for each field name (k) and submitted value (v), we set that attribute on the
+        # existing job instance, like setattr(job, 'title', 'New Title')
         for k, v in fields.items():
             setattr(job, k, v)
             job.save()
-        return redirect('jobs.index')   # or redirect('jobs.index')
+        return redirect('jobs.index')  
 
     template_data = {'title': 'Add Job' if job is None else f'Edit: {job.title}', 'job': job}
     return render(request, 'jobs/form.html', {'template_data': template_data})

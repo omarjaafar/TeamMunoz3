@@ -16,9 +16,11 @@ class Job(models.Model):
     salary = models.CharField(max_length=120, blank=True)  
     description = models.TextField()
 
-    # this is a feature used by the system to know what jobs a recruiter has posted. it won't be shown to
-    # the job seekers 
+    # every recruiter posts jobs. we get the jobs that are posted by that recruiter.
+    # if the recruiter no longer exists, then all the jobs posted by them will also be deleted (on_delete=...)
+    # the last 2 just set the column vals to NULL if there have been no job posted
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs', null=True, blank=True)         
 
+    # the name that should be returned should be of the form "Recruiter at Company"
     def __str__(self):
         return f"{self.title} at {self.company}"
