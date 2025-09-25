@@ -6,23 +6,58 @@
 
         <div class="d-flex align-items-center flex-wrap">
             <a class="btn btn-primary" href="{% url 'jobs.create' %}">Add Job</a>
-
-            <!-- we loop over the list template_data.jobs that the user entered. the first line then creates a link to
-            the edit page for that job. now we display the job that has been posted in the format [Company - Job_Title]
-            the if statement just puts Untitled if the Company name has not been filled out in the job posting 
-            Also, at the end if there are no jobs created, the for loop won't run and hence we display the messsage in a 
-            span tag -->
-            {% for job in template_data.jobs %}
-            <a class="btn btn-outline-secondary" href="{% url 'jobs.edit' job.id %}"
-                title="{{ job.title|default:'Untitled' }} — {{ job.company|default:'Company' }}">
-                {{ job.title|default:"Untitled"|truncatechars:24 }}
-                {% if job.company %} — {{ job.company|truncatechars:18 }}{% endif %}
-            </a>
-            {% empty %}
-            <span class="text-muted"> No jobs yet. Click “Add Job”.</span>
-            {% endfor %}
-
         </div>
+
+        <div class="mt-4">
+            {% if template_data.jobs %}
+            <div class="row g-3">
+                {% for job in template_data.jobs %}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <a href="{% url 'jobs.edit' job.id %}" class="text-decoration-none text-reset">
+                        <div class="mini-card border rounded-3 p-3 h-100">
+                            <div class="fw-semibold">
+                                {{ job.title|default:"Untitled"|truncatechars:28 }}
+                                {% if job.company %} — {{ job.company|truncatechars:22 }}{% endif %}
+                            </div>
+                            {% if job.location %}
+                            <div class="text-muted small mt-1">
+                                {{ job.location|truncatechars:30 }}
+                            </div>
+                            {% endif %}
+                            {% if job.description %}
+                            <div class="small mt-2 clamp-2">
+                                {{ job.description }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-muted mt-2">No jobs yet. Click “Add Job”.</div>
+            {% endif %}
+        </div>
+
     </div>
 </div>
+
+<style>
+    .mini-card {
+        transition: box-shadow .15s ease, transform .05s ease;
+    }
+
+    .mini-card:hover {
+        box-shadow: 0 .35rem .9rem rgba(0, 0, 0, .12);
+        transform: translateY(-1px);
+    }
+
+    /* keep descriptions tidy (approx 2 lines) */
+    .clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
 {% endblock content %}

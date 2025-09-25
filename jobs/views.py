@@ -39,7 +39,7 @@ def job_form(request, pk=None):
         }
 
         if job is None:
-            #capture the instance, then redirect using its pk
+            #capture the instance, then redirect using its pk - define the fields dict here 
             job = Job.objects.create(posted_by=request.user, **fields)
             return redirect('jobs.edit', pk=job.pk)
 
