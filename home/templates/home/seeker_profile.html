@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2>{{ template_data.title }}</h2>
+  <hr>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="id_headline" class="form-label">Headline</label>
+      <input id="id_headline" name="headline" type="text" class="form-control"
+             maxlength="120" value="{{ template_data.profile.headline }}">
+      <div class="form-text">e.g., “CS student seeking SWE internships”</div>
+    </div>
+    <div class="mb-3">
+      <label for="id_skills" class="form-label">Skills</label>
+      <textarea id="id_skills" name="skills" class="form-control" rows="3">{{ template_data.profile.skills }}</textarea>
+      <div class="form-text">Comma or line separated (Python, Django, SQL…)</div>
+    </div>
+    <div class="mb-3">
+      <label for="id_education" class="form-label">Education</label>
+      <textarea id="id_education" name="education" class="form-control" rows="3">{{ template_data.profile.education }}</textarea>
+      <div class="form-text">School, degree, dates</div>
+    </div>
+    <div class="mb-3">
+      <label for="id_experience" class="form-label">Work Experience</label>
+      <textarea id="id_experience" name="experience" class="form-control" rows="4">{{ template_data.profile.experience }}</textarea>
+      <div class="form-text">Company, role, achievements, dates</div>
+    </div>
+    <div class="mb-3">
+      <label for="id_links" class="form-label">Links</label>
+      <textarea id="id_links" name="links" class="form-control" rows="3">{{ template_data.profile.links }}</textarea>
+      <div class="form-text">One per line (LinkedIn, GitHub, portfolio…)</div>
+    </div>
+    <button type="submit" class="btn btn-dark">Save</button>
+  </form>
+</div>
+{% endblock %}
