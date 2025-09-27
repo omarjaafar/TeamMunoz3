@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.models import Profile
+from jobs.models import Job
 
 def index(request):
     template_data = {}
@@ -19,8 +20,88 @@ def search(request):
 
 # job seeker
 def seeker_apply(request):
-    template_data = {}
-    template_data['title'] = 'Apply'
+    from django.db.models import Q
+    import re
+    
+    # Get all jobs initially
+    jobs = Job.objects.all()
+    
+    # Apply filters based on GET parameters
+    search_query = request.GET.get('search', '')
+    job_type = request.GET.get('job_type', '')
+    location = request.GET.get('location', '')
+    remote_onsite = request.GET.get('remote_onsite', '')
+    visa_sponsorship = request.GET.get('visa_sponsorship', '')
+    salary_range = request.GET.get('salary_range', '')
+    
+    # Apply search filter
+    if search_query:
+        jobs = jobs.filter(
+            Q(title__icontains=search_query) |
+            Q(company__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    # Apply job type filter
+    if job_type:
+        jobs = jobs.filter(job_type=job_type)
+    
+    # Apply location filter
+    if location:
+        jobs = jobs.filter(location__icontains=location)
+    
+    # Apply remote/onsite filter
+    if remote_onsite:
+        jobs = jobs.filter(remote_onsite=remote_onsite)
+    
+    # Apply visa sponsorship filter
+    if visa_sponsorship:
+        jobs = jobs.filter(visa_sponsorship=visa_sponsorship)
+    
+    # Apply salary range filter
+    if salary_range:
+        if salary_range == '0-30000':
+            # Filter for jobs with salary containing numbers 0-30000
+            jobs = jobs.filter(
+                Q(salary__icontains='0') | Q(salary__icontains='1') | Q(salary__icontains='2') |
+                Q(salary__icontains='3') | Q(salary__icontains='4') | Q(salary__icontains='5') |
+                Q(salary__icontains='6') | Q(salary__icontains='7') | Q(salary__icontains='8') |
+                Q(salary__icontains='9')
+            ).exclude(
+                Q(salary__icontains='40') | Q(salary__icontains='50') | Q(salary__icontains='60') |
+                Q(salary__icontains='70') | Q(salary__icontains='80') | Q(salary__icontains='90') |
+                Q(salary__icontains='100') | Q(salary__icontains='150')
+            )
+        elif salary_range == '30000-50000':
+            jobs = jobs.filter(
+                Q(salary__icontains='30') | Q(salary__icontains='35') | Q(salary__icontains='40') |
+                Q(salary__icontains='45') | Q(salary__icontains='50')
+            )
+        elif salary_range == '50000-75000':
+            jobs = jobs.filter(
+                Q(salary__icontains='50') | Q(salary__icontains='55') | Q(salary__icontains='60') |
+                Q(salary__icontains='65') | Q(salary__icontains='70') | Q(salary__icontains='75')
+            )
+        elif salary_range == '75000-100000':
+            jobs = jobs.filter(
+                Q(salary__icontains='75') | Q(salary__icontains='80') | Q(salary__icontains='85') |
+                Q(salary__icontains='90') | Q(salary__icontains='95') | Q(salary__icontains='100')
+            )
+        elif salary_range == '100000-150000':
+            jobs = jobs.filter(
+                Q(salary__icontains='100') | Q(salary__icontains='110') | Q(salary__icontains='120') |
+                Q(salary__icontains='130') | Q(salary__icontains='140') | Q(salary__icontains='150')
+            )
+        elif salary_range == '150000+':
+            jobs = jobs.filter(
+                Q(salary__icontains='150') | Q(salary__icontains='200') | Q(salary__icontains='250') |
+                Q(salary__icontains='300') | Q(salary__icontains='500')
+            )
+    
+    template_data = {
+        'title': 'Apply',
+        'jobs': jobs
+    }
     return render(request, 'home/seeker_apply.html', {'template_data': template_data})
 
 def seeker_status(request):

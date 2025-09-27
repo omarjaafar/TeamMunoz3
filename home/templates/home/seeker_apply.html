@@ -1,8 +1,285 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="continer">
-  <h2>{{ template_data.title }}</h2>
-  <hr>
-  <p>content for {{ template_data.title }}.</p>
+<div class="container py-4">
+    <!-- Centered Page Heading-->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4 fw-bold text-center mb-3">Available Job Postings</h1>
+            <p class="lead text-center text-muted">Discover your next career opportunity</p>
+        </div>
+    </div>
+
+    <!-- Filter and Search Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <!-- Search Bar -->
+                        <div class="col-md-4">
+                            <label for="search" class="form-label fw-semibold">Search Jobs</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   placeholder="Job title, company, or keywords..." 
+                                   value="{{ request.GET.search }}">
+                        </div>
+                        
+                        <!-- Job Type Filter -->
+                        <div class="col-md-2">
+                            <label for="job_type" class="form-label fw-semibold">Job Type</label>
+                            <select class="form-select" id="job_type" name="job_type">
+                                <option value="">All Types</option>
+                                <option value="FT" {% if request.GET.job_type == 'FT' %}selected{% endif %}>Full-time</option>
+                                <option value="PT" {% if request.GET.job_type == 'PT' %}selected{% endif %}>Part-time</option>
+                                <option value="IN" {% if request.GET.job_type == 'IN' %}selected{% endif %}>Internship</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Location Filter -->
+                        <div class="col-md-2">
+                            <label for="location" class="form-label fw-semibold">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   placeholder="City, State" value="{{ request.GET.location }}">
+                        </div>
+                        
+                        <!-- Remote/Onsite Filter -->
+                        <div class="col-md-2">
+                            <label for="remote_onsite" class="form-label fw-semibold">Work Type</label>
+                            <select class="form-select" id="remote_onsite" name="remote_onsite">
+                                <option value="">All</option>
+                                <option value="R" {% if request.GET.remote_onsite == 'R' %}selected{% endif %}>Remote</option>
+                                <option value="O" {% if request.GET.remote_onsite == 'O' %}selected{% endif %}>Onsite</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Visa Sponsorship Filter -->
+                        <div class="col-md-2">
+                            <label for="visa_sponsorship" class="form-label fw-semibold">Visa Sponsorship</label>
+                            <select class="form-select" id="visa_sponsorship" name="visa_sponsorship">
+                                <option value="">All</option>
+                                <option value="Y" {% if request.GET.visa_sponsorship == 'Y' %}selected{% endif %}>Yes</option>
+                                <option value="N" {% if request.GET.visa_sponsorship == 'N' %}selected{% endif %}>No</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Salary Range Filter -->
+                        <div class="col-md-2">
+                            <label for="salary_range" class="form-label fw-semibold">Salary Range</label>
+                            <select class="form-select" id="salary_range" name="salary_range">
+                                <option value="">All Salaries</option>
+                                <option value="0-30000" {% if request.GET.salary_range == '0-30000' %}selected{% endif %}>$0 - $30,000</option>
+                                <option value="30000-50000" {% if request.GET.salary_range == '30000-50000' %}selected{% endif %}>$30,000 - $50,000</option>
+                                <option value="50000-75000" {% if request.GET.salary_range == '50000-75000' %}selected{% endif %}>$50,000 - $75,000</option>
+                                <option value="75000-100000" {% if request.GET.salary_range == '75000-100000' %}selected{% endif %}>$75,000 - $100,000</option>
+                                <option value="100000-150000" {% if request.GET.salary_range == '100000-150000' %}selected{% endif %}>$100,000 - $150,000</option>
+                                <option value="150000+" {% if request.GET.salary_range == '150000+' %}selected{% endif %}>$150,000+</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter Buttons -->
+                        <div class="col-12">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Apply Filters
+                                </button>
+                                <a href="{% url 'seeker.apply' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Clear Filters
+                                </a>
+                                <div class="ms-auto">
+                                    <small class="text-muted">
+                                        {% if template_data.jobs %}
+                                            {{ template_data.jobs|length }} job{{ template_data.jobs|length|pluralize }} found
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job Listings -->
+    {% if template_data.jobs %}
+        <div class="row">
+            {% for job in template_data.jobs %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 job-card">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title mb-1 fw-bold">{{ job.title }}</h5>
+                                <h6 class="card-subtitle mb-0 opacity-75">{{ job.company }}</h6>
+                            </div>
+                            <span class="badge bg-light text-dark">
+                                {{ job.get_job_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body d-flex flex-column">
+                        <!-- Job Details -->
+                        <div class="mb-3">
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <small class="text-muted d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        {{ job.location|default:"Not specified" }}
+                                    </small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-flex align-items-center">
+                                        <i class="fas fa-{{ job.remote_onsite|yesno:'laptop,office-building' }} me-1"></i>
+                                        {{ job.get_remote_onsite_display }}
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            {% if job.salary %}
+                            <div class="mb-2">
+                                <small class="text-muted d-flex align-items-center">
+                                    <i class="fas fa-dollar-sign me-1"></i>
+                                    {{ job.salary }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-flex align-items-center">
+                                    <i class="fas fa-passport me-1"></i>
+                                    Visa Sponsorship: {{ job.get_visa_sponsorship_display }}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Job Description -->
+                        <div class="mb-3 flex-grow-1">
+                            <p class="card-text text-muted small">
+                                {{ job.description|truncatewords:25 }}
+                            </p>
+                        </div>
+
+                        <!-- Posted By -->
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>
+                                Posted by: {{ job.posted_by.username }}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success btn-lg fw-bold" type="button">
+                                <i class="fas fa-paper-plane me-2"></i>Apply Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- No Jobs Available -->
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h3 class="text-muted">No Jobs Available</h3>
+                        <p class="text-muted">There are currently no job postings available. Check back later for new opportunities!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
+
+<!-- Custom CSS for job cards -->
+<style>
+.job-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.job-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important;
+    border-color: #007bff;
+}
+
+.job-card .card-header {
+    border-radius: 8px 8px 0 0 !important;
+    background-color: #007bff !important;
+    border-bottom: none;
+}
+
+.job-card .card-footer {
+    border-radius: 0 0 8px 8px;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border: 1px solid #28a745;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    transform: translateY(-1px);
+}
+
+.btn-outline-secondary {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+/* Filter form styling */
+.form-label {
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    font-size: 0.9rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+/* Filter card styling */
+.card {
+    border-radius: 8px;
+}
+
+/* Job count styling */
+.text-muted {
+    font-size: 0.85rem;
+}
+</style>
 {% endblock %}
