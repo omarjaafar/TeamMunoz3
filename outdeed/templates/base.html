@@ -62,6 +62,7 @@
                 <a class="nav-link" href="{% url 'recruiter.messages' %}">Messages</a>
               {% elif user.profile and user.profile.role == 'ADMIN' %}
                 <a class="nav-link" href="{% url 'admin.edit_posts' %}">Edit Posts</a>
+                <a class="nav-link" href="{% url 'admin.manage_users' %}">Manage Users</a>
             {% endif %}
 
             <!-- want to display as Logout (user_name | role)  -->

@@ -18,7 +18,11 @@ def signup(request):
             user = form.save()
             # we now read from the dropdown menu which selects 'JOB_SEEKER' as the default role
             role = request.POST.get('role', Profile.JOB_SEEKER)
-            Profile.objects.create(user= user, role = role)
+            if role == 'ADMIN':
+                user.is_staff = True
+                user.is_superuser = True
+                user.save()
+            Profile.objects.create(user=user, role=role)
             auth_login(request, user)
             return redirect('home.index')
         else:

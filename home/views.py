@@ -1,6 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.models import Profile
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+
 
 def index(request):
     template_data = {}
@@ -59,6 +63,38 @@ def seeker_profile(request):
     }
     return render(request, 'home/seeker_profile.html', {'template_data': template_data})
 
+# ...existing code...
+
+@require_POST
+def admin_create_user(request):
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    role = request.POST.get('role')
+    if not username or not password or not role:
+        messages.error(request, 'All fields are required.')
+        return redirect('admin.manage_users')
+    if User.objects.filter(username=username).exists():
+        messages.error(request, 'Username already exists.')
+        return redirect('admin.manage_users')
+    user = User.objects.create_user(username=username, password=password)
+    if role == 'ADMIN':
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+    Profile.objects.create(user=user, role=role)
+    messages.success(request, f'User {username} created successfully.')
+    return redirect('admin.manage_users')
+
+@require_POST
+def admin_delete_user(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+        username = user.username
+        user.delete()
+        messages.success(request, f'User {username} deleted successfully.')
+    except User.DoesNotExist:
+        messages.error(request, 'User not found.')
+    return redirect('admin.manage_users')
 
 # recruiter
 def recruiter_post_job(request):
@@ -76,3 +112,37 @@ def admin_edit_posts(request):
     template_data = {}
     template_data['title'] = 'Edit Posts'
     return render(request, 'home/admin_edit_posts.html', {'template_data': template_data})
+
+#admin
+def admin_manage_users(request):
+    users = User.objects.all()
+    return render(request, 'home/admin_manage_users.html', {'users': users})
+
+#admin
+def change_role(request, user_id, new_role):
+    user = User.objects.get(id=user_id)
+    profile, _ = Profile.objects.get_or_create(user=user)
+    profile.role = new_role
+    profile.save()
+    return redirect('admin.manage_users')
+
+#admin (POST handler for role change)
+from django.views.decorators.http import require_POST
+
+@require_POST
+def change_role_post(request, user_id):
+    new_role = request.POST.get('role')
+    user = User.objects.get(id=user_id)
+    profile, _ = Profile.objects.get_or_create(user=user)
+    if new_role:
+        profile.role = new_role
+        profile.save()
+        if new_role == 'ADMIN':
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+        else:
+            user.is_staff = False
+            user.is_superuser = False
+            user.save()
+    return redirect('admin.manage_users')
