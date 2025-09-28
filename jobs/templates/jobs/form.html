@@ -45,6 +45,28 @@
                 <textarea class="form-control" name="description"
                     rows="5">{{ template_data.job.description|default:'' }}</textarea>
             </div>
+
+            <div>
+                <label class="form-label">Remote/Onsite</label>
+                <select class="form-select" name="remote_onsite">
+                    <!-- we have a drop down menu that selects the type of job  -->
+                    {% with jt=template_data.job.remote_onsite|default:'O' %}
+                    <option value="R" {% if jt == 'Remote' %}selected{% endif %}>Remote</option>
+                    <option value="O" {% if jt == 'Onsite' %}selected{% endif %}>Onsite</option>
+                    {% endwith %}
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Visa Sponsorship</label>
+                <select class="form-select" name="visa_sponsorship">
+                    <!-- we have a drop down menu that selects the type of job  -->
+                    {% with jt=template_data.job.visa_sponsorship|default:'N' %}
+                    <option value="Y" {% if jt == 'Yes' %}selected{% endif %}>Yes</option>
+                    <option value="N" {% if jt == 'No' %}selected{% endif %}>No</option>
+                    {% endwith %}
+                </select>
+            </div>
             
             <!-- this part is just the buttons at the bottom of the page
             Save: after filling out details saves the profile of the job
