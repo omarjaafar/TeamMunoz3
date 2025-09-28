@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from jobs.models import Job
+from applications.views import MyApplicationsView  # ✅ import our applications view
+
 
 def index(request):
     template_data = {}
@@ -64,7 +66,6 @@ def seeker_apply(request):
     # Apply salary range filter
     if salary_range:
         if salary_range == '0-30000':
-            # Filter for jobs with salary containing numbers 0-30000
             jobs = jobs.filter(
                 Q(salary__icontains='0') | Q(salary__icontains='1') | Q(salary__icontains='2') |
                 Q(salary__icontains='3') | Q(salary__icontains='4') | Q(salary__icontains='5') |
@@ -107,10 +108,10 @@ def seeker_apply(request):
     }
     return render(request, 'home/seeker_apply.html', {'template_data': template_data})
 
-def seeker_status(request):
-    template_data = {}
-    template_data['title'] = 'Application Status'
-    return render(request, 'home/seeker_status.html', {'template_data': template_data})
+
+# ✅ Removed old seeker_status function
+# Instead, seeker.status is now wired in urls.py to MyApplicationsView
+
 
 def seeker_settings(request):
     template_data = {}
@@ -119,22 +120,15 @@ def seeker_settings(request):
 
 @login_required
 def seeker_profile(request):
-    #this basically allows us to read/write on the same instance throughout that request - no duplicates are created
     profile_obj, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        # no guard that skips save—always write what was submitted
-        # also for cases where the fields are '' (which it is in the start) it doesn't save properly so we look at the format
-        # we now directly and explicitly define each of the fields so the data stored in them will have to be saved
-        # field_in_profile = (request.POST.get('field') or '').strip()
-        # .strip() basically removes the additional whitespace before and after the string
         profile_obj.headline = (request.POST.get('headline') or '').strip()
         profile_obj.skills = (request.POST.get('skills') or '').strip()
         profile_obj.education = (request.POST.get('education') or '').strip()
         profile_obj.experience = (request.POST.get('experience') or '').strip()
         profile_obj.links = (request.POST.get('links') or '').strip()
         profile_obj.save()
-        # we now reload the page with the updated object in the database
         return redirect('seeker.profile')   
 
     template_data = {

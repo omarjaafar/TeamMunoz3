@@ -1,3 +1,3 @@
 from django.contrib import admin
 
-# Register your models here.
+# Nothing to register here yet — user Profile is linked automatically via User

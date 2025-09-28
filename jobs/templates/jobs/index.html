@@ -13,24 +13,31 @@
             <div class="row g-3">
                 {% for job in template_data.jobs %}
                 <div class="col-12 col-md-6 col-lg-4">
-                    <a href="{% url 'jobs.edit' job.id %}" class="text-decoration-none text-reset">
-                        <div class="mini-card border rounded-3 p-3 h-100">
-                            <div class="fw-semibold">
-                                {{ job.title|default:"Untitled"|truncatechars:28 }}
-                                {% if job.company %} — {{ job.company|truncatechars:22 }}{% endif %}
+                    <div class="mini-card border rounded-3 p-3 h-100 d-flex flex-column justify-content-between">
+                        <a href="{% url 'jobs.edit' job.id %}" class="text-decoration-none text-reset">
+                            <div>
+                                <div class="fw-semibold">
+                                    {{ job.title|default:"Untitled"|truncatechars:28 }}
+                                    {% if job.company %} — {{ job.company|truncatechars:22 }}{% endif %}
+                                </div>
+                                {% if job.location %}
+                                <div class="text-muted small mt-1">
+                                    {{ job.location|truncatechars:30 }}
+                                </div>
+                                {% endif %}
+                                {% if job.description %}
+                                <div class="small mt-2 clamp-2">
+                                    {{ job.description }}
+                                </div>
+                                {% endif %}
                             </div>
-                            {% if job.location %}
-                            <div class="text-muted small mt-1">
-                                {{ job.location|truncatechars:30 }}
-                            </div>
-                            {% endif %}
-                            {% if job.description %}
-                            <div class="small mt-2 clamp-2">
-                                {{ job.description }}
-                            </div>
-                            {% endif %}
+                        </a>
+                        <div class="mt-3">
+                            <a href="{% url 'applications:manage' job.id %}" class="btn btn-sm btn-outline-primary">
+                                Manage Applications
+                            </a>
                         </div>
-                    </a>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
