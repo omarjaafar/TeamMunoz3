@@ -170,9 +170,12 @@
                     
                     <div class="card-footer bg-transparent border-0 pt-0">
                         <div class="d-grid gap-2">
-                            <button class="btn btn-success btn-lg fw-bold" type="button">
-                                <i class="fas fa-paper-plane me-2"></i>Apply Now
-                            </button>
+                            <form method="post" action="{% url 'jobs.apply' job.pk %}">
+                                {% csrf_token %}
+                                <button class="btn btn-success btn-lg fw-bold" type="submit">
+                                    <i class="fas fa-paper-plane me-2"></i>Apply Now
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

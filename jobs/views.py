@@ -3,6 +3,7 @@ from .models import Job
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from applications.models import Application
 # Create your views here.
 
 @login_required
@@ -65,3 +66,25 @@ def delete(request, pk):
     else:
         messages.success(request, "Job deleted.")
     return redirect('jobs.index')
+
+@login_required
+@require_POST
+def apply_to_job(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+
+    # Prevent recruiters from applying to jobs
+    if hasattr(request.user, "profile") and request.user.profile.role != "JOB_SEEKER":
+        messages.error(request, "Only job seekers can apply to jobs.")
+        return redirect('seeker.apply')
+
+    application, created = Application.objects.get_or_create(
+        job=job,
+        applicant=request.user,
+    )
+
+    if created:
+        messages.success(request, f"Successfully applied to {job.title}.")
+    else:
+        messages.info(request, f"You have already applied to {job.title}.")
+
+    return redirect('seeker.apply')

@@ -1,4 +1,5 @@
 from django.urls import path
+from applications.views import MyApplicationsView
 from . import views
 
 urlpatterns = [
@@ -8,7 +9,7 @@ urlpatterns = [
     path('jobs/search/', views.search, name='jobs.search'),
     # job seeker only
     path('seeker/apply/', views.seeker_apply, name='seeker.apply'),
-    path('seeker/status/', views.seeker_status, name='seeker.status'),
+    path('seeker/status/', MyApplicationsView.as_view(), name='seeker.status'),
     path('seeker/settings/', views.seeker_settings, name='seeker.settings'),
     path('seeker/profile/', views.seeker_profile, name='seeker.profile'),
     # recruiter only
