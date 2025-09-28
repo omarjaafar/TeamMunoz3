@@ -1,8 +1,38 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="continer">
+<div class="container">
   <h2>{{ template_data.title }}</h2>
   <hr>
-  <p>content for {{ template_data.title }}.</p>
+
+  {% if template_data.posts %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Title</th><th>Company</th><th>Location</th><th>Created</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in template_data.posts %}
+        <tr>
+          <td>{{ post.title }}</td>
+          <td>{{ post.company }}</td>
+          <td>{{ post.location }}</td>
+          <td>{{ post.created_at }}</td>
+          <td>
+            <a class="btn btn-sm btn-primary" href="{% url 'admin.edit_post' post.pk %}">Edit</a>
+
+            <form method="post" action="{% url 'admin.delete_post' post.pk %}" style="display:inline;">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-danger" type="submit"
+                      onclick="return confirm('Delete this job permanently?');">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No posts found.</p>
+  {% endif %}
 </div>
 {% endblock %}

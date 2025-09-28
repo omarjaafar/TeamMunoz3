@@ -1,5 +1,5 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404 #
+from django.contrib.auth.decorators import login_required, user_passes_test #
 from accounts.models import Profile
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -9,6 +9,7 @@ from applications.views import MyApplicationsView  # ✅ import our applications
 
 
 def index(request):
+    #i think we could also write it like templaye_data = {'title': 'outdeed'}
     template_data = {}
     template_data['title'] = 'outdeed'
     return render(request, 'home/index.html', {'template_data': template_data})
@@ -144,17 +145,21 @@ def admin_create_user(request):
     username = request.POST.get('username')
     password = request.POST.get('password')
     role = request.POST.get('role')
+    
     if not username or not password or not role:
         messages.error(request, 'All fields are required.')
         return redirect('admin.manage_users')
+    
     if User.objects.filter(username=username).exists():
         messages.error(request, 'Username already exists.')
         return redirect('admin.manage_users')
+    
     user = User.objects.create_user(username=username, password=password)
     if role == 'ADMIN':
         user.is_staff = True
         user.is_superuser = True
         user.save()
+
     Profile.objects.create(user=user, role=role)
     messages.success(request, f'User {username} created successfully.')
     return redirect('admin.manage_users')
@@ -182,15 +187,33 @@ def recruiter_messages(request):
     return render(request, 'home/recruiter_messages.html', {'template_data': template_data})
 
 # admin
+
+def is_admin(user):
+    """
+    Reusable admin check.
+    """
+    return user.is_authenticated and (
+        getattr(user, "is_staff", False) or
+        (hasattr(user, "profile") and getattr(user.profile, "role", None) == "ADMIN")
+    )
+
+@login_required
+@user_passes_test(is_admin)
 def admin_edit_posts(request):
-    template_data = {}
-    template_data['title'] = 'Edit Posts'
+    # list all jobs for admin
+    template_data = {
+        'title': 'Edit Posts',
+        'posts': Job.objects.all().order_by('-created_at')  # use correct timestamp field
+    }
     return render(request, 'home/admin_edit_posts.html', {'template_data': template_data})
 
 #admin
 def admin_manage_users(request):
-    users = User.objects.all()
-    return render(request, 'home/admin_manage_users.html', {'users': users})
+    template_data = {
+        'title': 'Manage Users',
+        'users': User.objects.all().order_by('username')
+    }
+    return render(request, 'home/admin_manage_users.html', {'template_data': template_data})
 
 #admin
 def change_role(request, user_id, new_role):
@@ -206,7 +229,7 @@ from django.views.decorators.http import require_POST
 @require_POST
 def change_role_post(request, user_id):
     new_role = request.POST.get('role')
-    user = User.objects.get(id=user_id)
+    user = get_object_or_404(User, id=user_id)
     profile, _ = Profile.objects.get_or_create(user=user)
     if new_role:
         profile.role = new_role
@@ -214,9 +237,50 @@ def change_role_post(request, user_id):
         if new_role == 'ADMIN':
             user.is_staff = True
             user.is_superuser = True
-            user.save()
         else:
             user.is_staff = False
             user.is_superuser = False
-            user.save()
+        user.save()
     return redirect('admin.manage_users')
+
+@login_required
+@user_passes_test(is_admin)
+def admin_edit_post(request, pk):
+    # open the existing job in the form template (jobs/forms.html)
+    job = get_object_or_404(Job, pk=pk)
+
+    if request.method == 'POST':
+        # Update fields manually to match your jobs/forms.html inputs:
+        job.title = (request.POST.get('title') or '').strip()
+        job.company = (request.POST.get('company') or '').strip()
+        job.location = (request.POST.get('location') or '').strip()
+        job.job_type = request.POST.get('job_type') or job.job_type
+        salary = request.POST.get('salary')
+        job.salary = float(salary) if salary not in (None, '') else None
+        job.description = (request.POST.get('description') or '').strip()
+        job.remote_onsite = request.POST.get('remote_onsite') or job.remote_onsite
+        job.visa_sponsorship = request.POST.get('visa_sponsorship') or job.visa_sponsorship
+        job.save()
+        messages.success(request, "Job updated.")
+        return redirect('admin.edit_posts')
+
+    template_data = {
+        'title': f'Edit Job — {job.title}',
+        'job': job
+    }
+    # reuse your existing job form template
+    return render(request, 'jobs/form.html', {'template_data': template_data})
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_delete_post(request, pk):
+    post = get_object_or_404(Job, pk=pk)
+    if request.method == 'POST':
+        post.delete()
+        messages.success(request, "Job deleted.")
+        return redirect('admin.edit_posts')
+
+    # simple confirmation page
+    template_data = {'title': 'Confirm Delete', 'post': post}
+    return render(request, 'home/admin_confirm_delete.html', {'template_data': template_data})
