@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from applications.models import Application
+from django.urls import reverse
 # Create your views here.
 
 @login_required
@@ -42,7 +43,7 @@ def job_form(request, pk=None):
         if job is None:
             #capture the instance, then redirect using its pk - define the fields dict here 
             job = Job.objects.create(posted_by=request.user, **fields)
-            return redirect('jobs.edit', pk=job.pk)
+            return redirect(reverse('jobs.index'), pk=job.pk)
 
         # update the existing instance, then redirect
         # the for-loop below iterates through the (key, value) pairs in the 'fields' dict

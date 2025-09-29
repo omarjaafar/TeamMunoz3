@@ -19,11 +19,6 @@ def about(request):
     template_data['title'] = 'About'
     return render(request, 'home/about.html', {'template_data': template_data})
 
-def search(request):
-    template_data = {}
-    template_data['title'] = 'Search'
-    return render(request, 'home/search.html', {'template_data': template_data})
-
 # job seeker
 def seeker_apply(request):
     from django.db.models import Q
@@ -130,7 +125,7 @@ def seeker_profile(request):
         profile_obj.experience = (request.POST.get('experience') or '').strip()
         profile_obj.links = (request.POST.get('links') or '').strip()
         profile_obj.save()
-        return redirect('seeker.profile')   
+        return redirect('seeker.settings')   
 
     template_data = {
         'title': 'Edit Profile',

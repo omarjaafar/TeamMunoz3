@@ -22,15 +22,6 @@
         <a class="navbar-brand" href="{% url 'home.index' %}">
           <img src="{% static 'img/logo.png' %}" alt="logo" height="40" />
         </a>
-        <!-- search bar feature (only for Job Seeker or Recruiter) -->
-        {% if user.is_authenticated and user.profile %}  
-          {% if user.profile.role == 'JOB_SEEKER' or user.profile.role == 'RECRUITER' %} 
-          <form action="/search" method="GET">
-            <input type="search" name="SearchBar" placeholder="Search...">
-            <button type="submit">Search</button>
-          </form>
-          {% endif %}
-        {% endif %}
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup"
@@ -58,7 +49,7 @@
                 <a class="nav-link" href="{% url 'seeker.status' %}">Status</a>
                 <a class="nav-link" href="{% url 'seeker.settings' %}">Settings</a>
               {% elif user.profile and user.profile.role == 'RECRUITER' %}
-                <a class="nav-link" href="{% url 'jobs.index' %}">Post Job</a>
+                <a class="nav-link" href="{% url 'jobs.index' %}">Post A Job</a>
                 <a class="nav-link" href="{% url 'recruiter.messages' %}">Messages</a>
               {% elif user.profile and user.profile.role == 'ADMIN' %}
                 <a class="nav-link" href="{% url 'admin.edit_posts' %}">Edit Posts</a>
