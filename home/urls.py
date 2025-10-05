@@ -19,7 +19,7 @@ urlpatterns = [
     # administrator only
     path('adminpanel/edit-posts/', views.admin_edit_posts, name='admin.edit_posts'), #original
     path('adminpanel/edit-posts/<int:pk>/edit/', views.admin_edit_post, name='admin.edit_post'), #plus new
-    # path('adminpanel/edit-posts/<int:pk>/delete/', views.admin_delete_post, name='admin.delete_post'), #delete 
+    path('adminpanel/edit-posts/<int:pk>/delete/', views.admin_delete_post, name='admin.delete_post'), #delete 
     path('adminpanel/manage-users/', views.admin_manage_users, name='admin.manage_users'),
     path('adminpanel/create-user/', views.admin_create_user, name='admin.create_user'),
     path('adminpanel/delete-user/<int:user_id>/', views.admin_delete_user, name='admin.delete_user'),

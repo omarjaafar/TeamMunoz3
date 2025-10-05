@@ -5,42 +5,54 @@
   <hr>
 
   {% if template_data.applications %}
-    <table class="table table-bordered align-middle">
-      <thead>
-        <tr>
-          <th>Applicant</th>
-          <th>Status</th>
-          <th>Last Updated</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for app in template_data.applications %}
-        <tr>
-          <td>{{ app.applicant.username }}</td>
-          <td>
-            <form method="post" action="{% url 'applications:manage' template_data.job.id %}">
-              {% csrf_token %}
-              <input type="hidden" name="app_id" value="{{ app.id }}">
-              <select name="status" class="form-select form-select-sm">
-                {% for value, label in app.Status.choices %}
-                  <option value="{{ value }}" {% if app.status == value %}selected{% endif %}>
-                    {{ label }}
-                  </option>
-                {% endfor %}
-              </select>
-          </td>
-          <td>{{ app.updated_at|date:"Y-m-d H:i" }}</td>
-          <td>
-              <button type="submit" class="btn btn-sm btn-primary">Update</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <table class="table table-bordered align-middle">
+    <thead>
+      <tr>
+        <th>Applicant</th>
+        <th>Status</th>
+        <th>Last Updated</th>
+        <th>Note</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for app in template_data.applications %}
+      <tr>
+        <td>{{ app.applicant.username }}</td>
+        <td>
+          <form method="post" action="{% url 'applications:manage' template_data.job.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="app_id" value="{{ app.id }}">
+            <select name="status" class="form-select form-select-sm">
+              {% for value, label in app.Status.choices %}
+              <option value="{{ value }}" {% if app.status == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select>
+        </td>
+        <td>{{ app.updated_at|date:"Y-m-d H:i" }}</td>
+
+        <td>
+          {% if app.notes %}
+          <span class="d-inline-block text-truncate" style="max-width: 280px;">
+            {{ app.notes }}
+          </span>
+          {% else %}
+          <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+
+        <td>
+          <button type="submit" class="btn btn-sm btn-primary">Update</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
   {% else %}
-    <p>No applications yet for this job.</p>
+  <p>No applications yet for this job.</p>
   {% endif %}
 </div>
 {% endblock %}

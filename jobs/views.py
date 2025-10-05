@@ -78,14 +78,23 @@ def apply_to_job(request, pk):
         messages.error(request, "Only job seekers can apply to jobs.")
         return redirect('seeker.apply')
 
+    note = (request.POST.get("note") or "").strip()
     application, created = Application.objects.get_or_create(
         job=job,
         applicant=request.user,
+        defaults={"notes": note}
     )
 
     if created:
         messages.success(request, f"Successfully applied to {job.title}.")
     else:
-        messages.info(request, f"You have already applied to {job.title}.")
+        # If they re-apply with a new note, update (your choice)
+        if note:
+            application.notes = note
+            application.save(update_fields=["notes"])
+            messages.success(request, "Your note was updated for this application.")
+        else:
+            messages.info(request, "You already applied to this job.")
+
 
     return redirect('seeker.apply')
