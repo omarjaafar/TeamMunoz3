@@ -125,14 +125,15 @@ def seeker_apply(request):
         if profile_location:
             loc_query = Q(location__icontains=profile_location)
 
-        # Prefer matches on both location and skills; fallback to skills only
+        # Prefer matches on both location and skills; optionally fallback to skills only
         if skill_tokens or profile_location:
             qs_skill = Job.objects.filter(skill_query)
             qs_both = qs_skill.filter(loc_query) if profile_location else Job.objects.none()
 
             # Build ordered list in Python 
             recommended_list = list(qs_both.order_by('-created_at')[:6])
-            if len(recommended_list) < 6:
+            # Only fill with skills-only if the user actually provided skills
+            if skill_tokens and len(recommended_list) < 6:
                 taken_ids = [j.id for j in recommended_list]
                 more = list(
                     qs_skill.exclude(id__in=taken_ids).order_by('-created_at')[: 6 - len(recommended_list)]
