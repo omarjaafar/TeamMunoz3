@@ -15,6 +15,7 @@ urlpatterns = [
     # recruiter only
     path('recruiter/post/', views.recruiter_post_job, name='recruiter.post_job'),
     path('recruiter/messages/', views.recruiter_messages, name='recruiter.messages'),
+    path('recruiter/candidates/', views.recruiter_find_candidates, name='recruiter.find_candidates'),
     # administrator only
     path('adminpanel/edit-posts/', views.admin_edit_posts, name='admin.edit_posts'), #original
     path('adminpanel/edit-posts/<int:pk>/edit/', views.admin_edit_post, name='admin.edit_post'), #plus new

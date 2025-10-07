@@ -4,6 +4,7 @@ from accounts.models import Profile
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+import re
 from jobs.models import Job
 from applications.views import MyApplicationsView  # ✅ import our applications view
 
@@ -236,6 +237,44 @@ def recruiter_messages(request):
     template_data = {}
     template_data['title'] = 'Messages'
     return render(request, 'home/recruiter_messages.html', {'template_data': template_data})
+
+# recruiter: find candidates
+def is_recruiter(user):
+    return user.is_authenticated and (
+        hasattr(user, "profile") and getattr(user.profile, "role", None) == "RECRUITER"
+    )
+
+@login_required
+@user_passes_test(is_recruiter)
+def recruiter_find_candidates(request):
+    from django.db.models import Q
+
+    skills_q = (request.GET.get('skills') or '').strip()
+    location_q = (request.GET.get('location') or '').strip()
+    projects_q = (request.GET.get('projects') or '').strip()
+
+    candidates = Profile.objects.filter(role=Profile.JOB_SEEKER)
+
+    query = Q()
+    if skills_q:
+        for token in [t.strip() for t in re.split(r"[,\n]", skills_q) if t.strip()]:
+            query |= Q(skills__icontains=token)
+    if location_q:
+        query &= Q(location__icontains=location_q)
+    if projects_q:
+        for token in [t.strip() for t in re.split(r"[,\n]", projects_q) if t.strip()]:
+            query &= Q(projects__icontains=token)
+
+    if skills_q or location_q or projects_q:
+        candidates = candidates.filter(query)
+
+    candidates = candidates.select_related('user').order_by('user__username')
+
+    template_data = {
+        'title': 'Find Candidates',
+        'candidates': candidates,
+    }
+    return render(request, 'home/recruiter_search_candidates.html', {'template_data': template_data})
 
 # admin
 

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="display-6 fw-semibold">Find Candidates</h1>
+      <p class="text-muted">Search by skills, location, and projects</p>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <form method="get" class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Skills</label>
+              <input class="form-control" name="skills" placeholder="e.g., Python, Django" value="{{ request.GET.skills|default:'' }}">
+              <small class="text-muted">Comma or line separated</small>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Location</label>
+              <input class="form-control" name="location" placeholder="City, State" value="{{ request.GET.location|default:'' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Projects</label>
+              <input class="form-control" name="projects" placeholder="Keywords in projects" value="{{ request.GET.projects|default:'' }}">
+            </div>
+            <div class="col-12 d-flex gap-2">
+              <button class="btn btn-primary" type="submit">Search</button>
+              <a class="btn btn-outline-secondary" href="{% url 'recruiter.find_candidates' %}">Clear</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    {% if template_data.candidates %}
+      {% for p in template_data.candidates %}
+        <div class="col-lg-6 mb-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h5 class="mb-1">{{ p.user.username }}</h5>
+                  <div class="text-muted small">{{ p.location|default:'Location not specified' }}</div>
+                </div>
+                <span class="badge bg-dark-subtle text-dark">{{ p.get_role_display }}</span>
+              </div>
+              {% if p.headline %}
+              <p class="mt-2 mb-2">{{ p.headline }}</p>
+              {% endif %}
+              {% if p.skills %}
+              <div class="small text-muted"><strong>Skills:</strong> {{ p.skills }}</div>
+              {% endif %}
+              {% if p.projects %}
+              <div class="small text-muted mt-1"><strong>Projects:</strong> {{ p.projects|truncatewords:30 }}</div>
+              {% endif %}
+              {% if p.experience %}
+              <div class="small text-muted mt-1"><strong>Experience:</strong> {{ p.experience|truncatewords:30 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center py-5">
+            <i class="fas fa-user-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted mb-1">No candidates found</h5>
+            <p class="text-muted">Try broadening your search terms.</p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+
