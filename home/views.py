@@ -125,8 +125,10 @@ def seeker_profile(request):
 
     if request.method == "POST":
         profile_obj.headline = (request.POST.get('headline') or '').strip()
+        profile_obj.location = (request.POST.get('location') or '').strip()
         profile_obj.skills = (request.POST.get('skills') or '').strip()
         profile_obj.education = (request.POST.get('education') or '').strip()
+        profile_obj.projects = (request.POST.get('projects') or '').strip()
         profile_obj.experience = (request.POST.get('experience') or '').strip()
         profile_obj.links = (request.POST.get('links') or '').strip()
         profile_obj.save()

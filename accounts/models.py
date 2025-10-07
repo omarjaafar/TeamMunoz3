@@ -18,8 +18,10 @@ class Profile(models.Model):
     # details that the user fills in to create the profile - each of them will be blank in the start and then the user can
     # fill in stuff. Also it can remain blank if the user chooses to not fill in anything
     headline = models.CharField(max_length=120, blank=True)
+    location = models.CharField(max_length=120, blank=True)
     skills = models.TextField(blank=True)
     education = models.TextField(blank=True)
+    projects = models.TextField(blank=True)
     experience = models.TextField(blank=True)
     links = models.TextField(blank=True)
 
