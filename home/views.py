@@ -103,9 +103,57 @@ def seeker_apply(request):
                 Q(salary__icontains='300') | Q(salary__icontains='500')
             )
     
+    # Build simple recommendations based on the seeker's profile
+    recommended_jobs = Job.objects.none()
+    try:
+        profile = request.user.profile if request.user.is_authenticated else None
+    except Exception:
+        profile = None
+
+    if profile is not None:
+        profile_location = (profile.location or '').strip()
+        # normalize skills to a list of keywords
+        raw_skills = (profile.skills or '')
+        # split by comma or newline and lowercase/strip
+        skill_tokens = [s.strip().lower() for s in re.split(r"[,\n]", raw_skills) if s.strip()]
+
+        skill_query = Q()
+        for token in skill_tokens[:8]:  # limit to first 8 tokens for efficiency
+            skill_query |= Q(title__icontains=token) | Q(description__icontains=token)
+
+        loc_query = Q()
+        if profile_location:
+            loc_query = Q(location__icontains=profile_location)
+
+        # Prefer matches on both location and skills; fallback to skills only
+        if skill_tokens or profile_location:
+            qs_skill = Job.objects.filter(skill_query)
+            qs_both = qs_skill.filter(loc_query) if profile_location else Job.objects.none()
+
+            # Build ordered list in Python 
+            recommended_list = list(qs_both.order_by('-created_at')[:6])
+            if len(recommended_list) < 6:
+                taken_ids = [j.id for j in recommended_list]
+                more = list(
+                    qs_skill.exclude(id__in=taken_ids).order_by('-created_at')[: 6 - len(recommended_list)]
+                )
+                recommended_list.extend(more)
+
+            if recommended_list:
+                recommended_jobs = recommended_list
+            else:
+                recommended_jobs = []
+        else:
+            # no profile signals: no recommendations
+            recommended_jobs = []
+    else:
+        # anonymous users: no recommendations
+        recommended_jobs = []
+
     template_data = {
         'title': 'Apply',
-        'jobs': jobs
+        'jobs': jobs,
+        'recommended_jobs': recommended_jobs,
     }
     return render(request, 'home/seeker_apply.html', {'template_data': template_data})
 
