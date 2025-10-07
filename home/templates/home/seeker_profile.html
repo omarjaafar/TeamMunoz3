@@ -12,6 +12,12 @@
       <div class="form-text">e.g., “CS student seeking SWE internships”</div>
     </div>
     <div class="mb-3">
+      <label for="id_location" class="form-label">Location</label>
+      <input id="id_location" name="location" type="text" class="form-control"
+             maxlength="120" value="{{ template_data.profile.location }}">
+      <div class="form-text">e.g., “Atlanta, Georgia”</div>
+    </div>
+    <div class="mb-3">
       <label for="id_skills" class="form-label">Skills</label>
       <textarea id="id_skills" name="skills" class="form-control" rows="3">{{ template_data.profile.skills }}</textarea>
       <div class="form-text">Comma or line separated (Python, Django, SQL…)</div>
@@ -20,6 +26,11 @@
       <label for="id_education" class="form-label">Education</label>
       <textarea id="id_education" name="education" class="form-control" rows="3">{{ template_data.profile.education }}</textarea>
       <div class="form-text">School, degree, dates</div>
+    </div>
+    <div class="mb-3">
+      <label for="id_projects" class="form-label">Projects</label>
+      <textarea id="id_projects" name="projects" class="form-control" rows="3">{{ template_data.profile.projects }}</textarea>
+      <div class="form-text">Past Projects</div>
     </div>
     <div class="mb-3">
       <label for="id_experience" class="form-label">Work Experience</label>

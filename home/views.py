@@ -4,6 +4,7 @@ from accounts.models import Profile
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+import re
 from jobs.models import Job
 from applications.views import MyApplicationsView  # ✅ import our applications view
 
@@ -98,9 +99,58 @@ def seeker_apply(request):
                 Q(salary__icontains='300') | Q(salary__icontains='500')
             )
     
+    # Build simple recommendations based on the seeker's profile
+    recommended_jobs = Job.objects.none()
+    try:
+        profile = request.user.profile if request.user.is_authenticated else None
+    except Exception:
+        profile = None
+
+    if profile is not None:
+        profile_location = (profile.location or '').strip()
+        # normalize skills to a list of keywords
+        raw_skills = (profile.skills or '')
+        # split by comma or newline and lowercase/strip
+        skill_tokens = [s.strip().lower() for s in re.split(r"[,\n]", raw_skills) if s.strip()]
+
+        skill_query = Q()
+        for token in skill_tokens[:8]:  # limit to first 8 tokens for efficiency
+            skill_query |= Q(title__icontains=token) | Q(description__icontains=token)
+
+        loc_query = Q()
+        if profile_location:
+            loc_query = Q(location__icontains=profile_location)
+
+        # Prefer matches on both location and skills; optionally fallback to skills only
+        if skill_tokens or profile_location:
+            qs_skill = Job.objects.filter(skill_query)
+            qs_both = qs_skill.filter(loc_query) if profile_location else Job.objects.none()
+
+            # Build ordered list in Python 
+            recommended_list = list(qs_both.order_by('-created_at')[:6])
+            # Only fill with skills-only if the user actually provided skills
+            if skill_tokens and len(recommended_list) < 6:
+                taken_ids = [j.id for j in recommended_list]
+                more = list(
+                    qs_skill.exclude(id__in=taken_ids).order_by('-created_at')[: 6 - len(recommended_list)]
+                )
+                recommended_list.extend(more)
+
+            if recommended_list:
+                recommended_jobs = recommended_list
+            else:
+                recommended_jobs = []
+        else:
+            # no profile signals: no recommendations
+            recommended_jobs = []
+    else:
+        # anonymous users: no recommendations
+        recommended_jobs = []
+
     template_data = {
         'title': 'Apply',
-        'jobs': jobs
+        'jobs': jobs,
+        'recommended_jobs': recommended_jobs,
     }
     return render(request, 'home/seeker_apply.html', {'template_data': template_data})
 
@@ -120,8 +170,10 @@ def seeker_profile(request):
 
     if request.method == "POST":
         profile_obj.headline = (request.POST.get('headline') or '').strip()
+        profile_obj.location = (request.POST.get('location') or '').strip()
         profile_obj.skills = (request.POST.get('skills') or '').strip()
         profile_obj.education = (request.POST.get('education') or '').strip()
+        profile_obj.projects = (request.POST.get('projects') or '').strip()
         profile_obj.experience = (request.POST.get('experience') or '').strip()
         profile_obj.links = (request.POST.get('links') or '').strip()
         profile_obj.save()
@@ -180,6 +232,44 @@ def recruiter_messages(request):
     template_data = {}
     template_data['title'] = 'Messages'
     return render(request, 'home/recruiter_messages.html', {'template_data': template_data})
+
+# recruiter: find candidates
+def is_recruiter(user):
+    return user.is_authenticated and (
+        hasattr(user, "profile") and getattr(user.profile, "role", None) == "RECRUITER"
+    )
+
+@login_required
+@user_passes_test(is_recruiter)
+def recruiter_find_candidates(request):
+    from django.db.models import Q
+
+    skills_q = (request.GET.get('skills') or '').strip()
+    location_q = (request.GET.get('location') or '').strip()
+    projects_q = (request.GET.get('projects') or '').strip()
+
+    candidates = Profile.objects.filter(role=Profile.JOB_SEEKER)
+
+    query = Q()
+    if skills_q:
+        for token in [t.strip() for t in re.split(r"[,\n]", skills_q) if t.strip()]:
+            query |= Q(skills__icontains=token)
+    if location_q:
+        query &= Q(location__icontains=location_q)
+    if projects_q:
+        for token in [t.strip() for t in re.split(r"[,\n]", projects_q) if t.strip()]:
+            query &= Q(projects__icontains=token)
+
+    if skills_q or location_q or projects_q:
+        candidates = candidates.filter(query)
+
+    candidates = candidates.select_related('user').order_by('user__username')
+
+    template_data = {
+        'title': 'Find Candidates',
+        'candidates': candidates,
+    }
+    return render(request, 'home/recruiter_search_candidates.html', {'template_data': template_data})
 
 # admin
 

@@ -51,6 +51,7 @@
               {% elif user.profile and user.profile.role == 'RECRUITER' %}
                 <a class="nav-link" href="{% url 'jobs.index' %}">Post A Job</a>
                 <a class="nav-link" href="{% url 'recruiter.messages' %}">Messages</a>
+                <a class="nav-link" href="{% url 'recruiter.find_candidates' %}">Find Candidates</a>
               {% elif user.profile and user.profile.role == 'ADMIN' %}
                 <a class="nav-link" href="{% url 'admin.edit_posts' %}">Edit Posts</a>
                 <a class="nav-link" href="{% url 'admin.manage_users' %}">Manage Users</a>
