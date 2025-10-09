@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid py-4">
+  <h2 class="mb-3">{{ template_data.job.title }} — Pipeline</h2>
+  <hr>
+
+  <div class="d-flex flex-row flex-wrap justify-content-between">
+    {% for stage, apps in template_data.pipeline.items %}
+      <div class="card shadow-sm m-2 flex-fill stage-column"
+           data-stage="{{ stage }}"
+           style="min-width:250px;max-width:300px;">
+        <div class="card-header text-center fw-bold text-white 
+          {% if stage == 'APPLIED' %}bg-secondary
+          {% elif stage == 'REVIEW' %}bg-info
+          {% elif stage == 'INTERVIEW' %}bg-warning text-dark
+          {% elif stage == 'OFFER' %}bg-success
+          {% elif stage == 'CLOSED' %}bg-danger
+          {% else %}bg-dark{% endif %}">
+          {{ stage|title }}
+        </div>
+        <div class="card-body dropzone" style="min-height:400px;background:#f9f9f9;">
+          {% for app in apps %}
+            <div class="card mb-2 border-0 shadow-sm bg-white draggable-card"
+                 data-app-id="{{ app.id }}"
+                 draggable="true">
+              <div class="card-body p-2">
+                <strong>{{ app.applicant.username }}</strong><br>
+                {% with p=app.applicant.profile %}
+                  {% if p.headline %}
+                    <small class="text-muted">{{ p.headline }}</small><br>
+                  {% endif %}
+                  {% if p.skills %}
+                    <small class="text-muted">{{ p.skills|truncatewords:8 }}</small>
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Toast container -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="statusToast" class="toast align-items-center text-bg-success border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">
+          ✅ Applicant status updated successfully
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card-header.bg-secondary { background-color: #6c757d !important; }
+  .card-header.bg-info { background-color: #0dcaf0 !important; }
+  .card-header.bg-warning { background-color: #ffc107 !important; }
+  .card-header.bg-success { background-color: #198754 !important; }
+  .card-header.bg-danger { background-color: #dc3545 !important; }
+
+  .card-body .card {
+    border-left: 4px solid #0d6efd;
+    transition: transform .1s ease-in-out;
+  }
+  .card-body .card:hover {
+    transform: scale(1.02);
+  }
+  .dropzone.drag-over {
+    background-color: #e9ecef;
+    border: 2px dashed #0d6efd;
+  }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const cards = document.querySelectorAll(".draggable-card");
+  const dropzones = document.querySelectorAll(".dropzone");
+  const toastEl = document.getElementById("statusToast");
+  const toast = toastEl ? new bootstrap.Toast(toastEl) : null;
+
+  cards.forEach(card => {
+    card.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", e.target.dataset.appId);
+    });
+  });
+
+  dropzones.forEach(zone => {
+    zone.addEventListener("dragover", e => {
+      e.preventDefault();
+      zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      const appId = e.dataTransfer.getData("text/plain");
+      const newStatus = zone.parentElement.dataset.stage;
+      const card = document.querySelector(`[data-app-id='${appId}']`);
+      zone.appendChild(card);
+
+      fetch(`/applications/update-status/${appId}/${newStatus}/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && toast) {
+            toast.show();
+          } else if (!data.success) {
+            alert("Error updating status: " + (data.error || "unknown"));
+          }
+        })
+        .catch(err => console.error(err));
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -16,34 +16,25 @@
   </head>
   <body class="d-flex flex-column min-vh-100">
     
-    <!-- Header: this part contains the stuff that will be displayed on the navbar-->
+    <!-- Header -->
     <nav class="p-3 navbar navbar-dark bg-dark navbar-expand-lg">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home.index' %}">
           <img src="{% static 'img/logo.png' %}" alt="logo" height="40" />
         </a>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup"
-            aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNavAltMarkup"
-                aria-controls="navbarNavAltMarkup"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup"
+                aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav ms-auto navbar-ml">
             <a class="nav-link" href="{% url 'home.about' %}">About</a>
             <div class="vr bg-white mx-2 d-none d-lg-block"></div>
+
             {% if user.is_authenticated %}
-            <!-- now based on the role that the user selected we will have different links on the navbar
-                 we check if profile exits and if what role the user is  -->
               {% if user.profile and user.profile.role == 'JOB_SEEKER' %}
                 <a class="nav-link" href="{% url 'seeker.apply' %}">Apply</a>
                 <a class="nav-link" href="{% url 'seeker.status' %}">Status</a>
@@ -55,19 +46,18 @@
               {% elif user.profile and user.profile.role == 'ADMIN' %}
                 <a class="nav-link" href="{% url 'admin.edit_posts' %}">Edit Posts</a>
                 <a class="nav-link" href="{% url 'admin.manage_users' %}">Manage Users</a>
-            {% endif %}
+              {% endif %}
 
-            <!-- want to display as Logout (user_name | role)  -->
-            <a class="nav-link"
-                href="{% url 'accounts.logout' %}"> Logout (
-                {{user.username}} | 
-                  {% if user.profile %}
-                  {{user.profile.get_role_display}}
-                  {% endif %}
-                )</a>
+              <a class="nav-link"
+                 href="{% url 'accounts.logout' %}"> Logout (
+                 {{ user.username }} | 
+                   {% if user.profile %}
+                   {{ user.profile.get_role_display }}
+                   {% endif %}
+                 )</a>
             {% else %}
-            <a class="nav-link" href="{% url 'accounts.login' %}">Login</a>
-            <a class="nav-link" href="{% url 'accounts.signup' %}">Sign Up</a>
+              <a class="nav-link" href="{% url 'accounts.login' %}">Login</a>
+              <a class="nav-link" href="{% url 'accounts.signup' %}">Sign Up</a>
             {% endif %}
           </div>
         </div>
@@ -75,30 +65,28 @@
     </nav>
     <!-- Header -->
 
-    <!-- Main Content -->
     <main class="flex-grow-1">
       {% block content %}
       {% endblock content %}
     </main>
 
     {% if messages %}
-  <div class="container mt-3">
-    {% for message in messages %}
-      <div class="alert 
-                  {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} 
-                  alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <div class="container mt-3">
+        {% for message in messages %}
+          <div class="alert 
+                      {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} 
+                      alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
       </div>
-    {% endfor %}
-  </div>
-{% endif %}
+    {% endif %}
 
     <!-- Footer -->
     <footer class="bg-dark text-white pt-5 pb-4">
       <div class="container">
         <div class="row">
-          <!-- About column -->
           <div class="col-md-4 mb-4">
             <h5>OUTDEED</h5>
             <p>
@@ -110,7 +98,6 @@
             </p>
           </div>
 
-          <!-- Links column -->
           <div class="col-md-4 mb-4">
             <h5>LINKS</h5>
             <ul class="list-unstyled">
@@ -119,7 +106,6 @@
             </ul>
           </div>
 
-          <!-- Contact column -->
           <div class="col-md-4 mb-4">
             <h5>CONTACT</h5>
             <p><i class="fas fa-home me-2"></i> Atlanta, GA, USA</p>

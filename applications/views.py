@@ -6,6 +6,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from jobs.models import Job
 from .forms import ApplicationStatusForm  # <-- new import
+from django.http import JsonResponse
+
 
 
 class MyApplicationsView(LoginRequiredMixin, ListView):
@@ -49,3 +51,43 @@ def manage_applications(request, job_id):
         "form": form,
     }
     return render(request, "applications/manage.html", {"template_data": template_data})
+
+
+# --- NEW: Recruiter pipeline (read-only Kanban board) ---
+@login_required
+def recruiter_pipeline(request, job_id):
+    if not hasattr(request.user, "profile") or request.user.profile.role != "RECRUITER":
+        messages.error(request, "Only recruiters can view pipelines.")
+        return redirect("home.index")
+
+    job = get_object_or_404(Job, pk=job_id, posted_by=request.user)
+    applications = Application.objects.filter(job=job).select_related("applicant__profile")
+
+    # group applications by status
+    pipeline = {
+        "APPLIED": applications.filter(status="APPLIED"),
+        "REVIEW": applications.filter(status="REVIEW"),
+        "INTERVIEW": applications.filter(status="INTERVIEW"),
+        "OFFER": applications.filter(status="OFFER"),
+        "CLOSED": applications.filter(status="CLOSED"),
+    }
+
+    template_data = {
+        "title": f"{job.title} – Pipeline",
+        "job": job,
+        "pipeline": pipeline,
+    }
+    return render(request, "applications/recruiter_pipeline.html", {"template_data": template_data})
+
+@login_required
+def update_application_status(request, app_id, new_status):
+    if not hasattr(request.user, "profile") or request.user.profile.role != "RECRUITER":
+        return JsonResponse({"success": False, "error": "Unauthorized"}, status=403)
+
+    try:
+        app = Application.objects.get(id=app_id)
+        app.status = new_status
+        app.save()
+        return JsonResponse({"success": True})
+    except Application.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Not found"}, status=404)

@@ -45,20 +45,26 @@
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <h5 class="mb-1">{{ p.user.username }}</h5>
-                  <div class="text-muted small">{{ p.location|default:'Location not specified' }}</div>
+                  {% if p.show_location and p.location %}
+                    <div class="text-muted small">{{ p.location }}</div>
+                  {% endif %}
                 </div>
               </div>
-              {% if p.headline %}
-              <p class="mt-2 mb-2">{{ p.headline }}</p>
+
+              {% if p.show_headline and p.headline %}
+                <p class="mt-2 mb-2">{{ p.headline }}</p>
               {% endif %}
-              {% if p.skills %}
-              <div class="small text-muted"><strong>Skills:</strong> {{ p.skills }}</div>
+
+              {% if p.show_skills and p.skills %}
+                <div class="small text-muted"><strong>Skills:</strong> {{ p.skills }}</div>
               {% endif %}
-              {% if p.projects %}
-              <div class="small text-muted mt-1"><strong>Projects:</strong> {{ p.projects|truncatewords:30 }}</div>
+
+              {% if p.show_projects and p.projects %}
+                <div class="small text-muted mt-1"><strong>Projects:</strong> {{ p.projects|truncatewords:30 }}</div>
               {% endif %}
-              {% if p.experience %}
-              <div class="small text-muted mt-1"><strong>Experience:</strong> {{ p.experience|truncatewords:30 }}</div>
+
+              {% if p.show_experience and p.experience %}
+                <div class="small text-muted mt-1"><strong>Experience:</strong> {{ p.experience|truncatewords:30 }}</div>
               {% endif %}
             </div>
           </div>
@@ -78,5 +84,3 @@
   </div>
 </div>
 {% endblock %}
-
-

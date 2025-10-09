@@ -1,6 +1,8 @@
 from django.urls import path
 from applications.views import MyApplicationsView
 from . import views
+from accounts import views as accounts_views
+
 
 urlpatterns = [
     path('', views.index, name='home.index'),
@@ -11,6 +13,8 @@ urlpatterns = [
     path('seeker/status/', MyApplicationsView.as_view(), name='seeker.status'),
     path('seeker/settings/', views.seeker_settings, name='seeker.settings'),
     path('seeker/profile/', views.seeker_profile, name='seeker.profile'),
+    path('seeker/settings/', accounts_views.seeker_settings, name='seeker.settings'),
+
 
     # recruiter only
     path('recruiter/post/', views.recruiter_post_job, name='recruiter.post_job'),
