@@ -32,11 +32,15 @@
                                 {% endif %}
                             </div>
                         </a>
-                        <div class="mt-3">
-                            <a href="{% url 'applications:manage' job.id %}" class="btn btn-sm btn-outline-primary">
-                                Manage Applications
-                            </a>
-                        </div>
+                        <div class="mt-3 d-flex gap-2">
+    <a href="{% url 'applications:manage' job.id %}" class="btn btn-sm btn-outline-primary">
+        Manage Applications
+    </a>
+    <a href="{% url 'applications:pipeline' job.id %}" class="btn btn-sm btn-outline-dark">
+        <i class="fas fa-columns"></i> View Pipeline
+    </a>
+</div>
+
                     </div>
                 </div>
                 {% endfor %}
