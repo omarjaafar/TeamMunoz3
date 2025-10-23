@@ -98,3 +98,4 @@ def edit_profile(request):
         return redirect('seeker.settings')
 
     return render(request, 'accounts/edit_profile.html', {'form': form})
+

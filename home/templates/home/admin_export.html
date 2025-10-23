@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2>{{ template_data.title }}</h2>
+  <hr>
+  <p>Export data for reporting. Choose a dataset to download as CSV:</p>
+  <ul>
+    <li><a href="?type=users" class="btn btn-outline-primary">Download users CSV</a></li>
+    <li><a href="?type=messages" class="btn btn-outline-primary">Download messages CSV</a></li>
+    <li><a href="?type=jobs" class="btn btn-outline-primary">Download jobs CSV</a></li>
+  </ul>
+</div>
+{% endblock %}
