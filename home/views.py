@@ -7,6 +7,9 @@ from django.views.decorators.http import require_POST
 import re
 from jobs.models import Job
 from applications.views import MyApplicationsView  # ✅ import our applications view
+from django.http import HttpResponse
+import csv
+from messages.models import Message
 
 
 def index(request):
@@ -231,13 +234,36 @@ def recruiter_post_job(request):
 def recruiter_messages(request):
     template_data = {}
     template_data['title'] = 'Messages'
+    # messages addressed to the current user
+    template_data['messages'] = request.user.received_messages.all() if request.user.is_authenticated else []
+    # list of possible recipients for the send form
+    template_data['users'] = User.objects.all().order_by('username')
     return render(request, 'home/recruiter_messages.html', {'template_data': template_data})
+
+
 
 # recruiter: find candidates
 def is_recruiter(user):
     return user.is_authenticated and (
         hasattr(user, "profile") and getattr(user.profile, "role", None) == "RECRUITER"
     )
+
+@login_required
+def recruiter_send_messages(request):
+    # If a logged-in user isn't a recruiter, show a friendly error instead of redirecting to login
+    if not is_recruiter(request.user):
+        messages.error(request, "Sorry! Only recruiters can start message threads.")
+        return redirect('recruiter.messages')
+
+    template_data = {}
+    template_data['title'] = 'Send Message'
+    template_data['users'] = User.objects.all().order_by('username')
+    # allow prefill for replies
+    reply_to = request.GET.get('reply_to')
+    recipient = request.GET.get('recipient')
+    template_data['reply_to'] = reply_to
+    template_data['prefill_recipient'] = recipient
+    return render(request, 'home/recruiter_send_messages.html', {'template_data': template_data})
 
 @login_required
 @user_passes_test(is_recruiter)
@@ -299,6 +325,65 @@ def admin_manage_users(request):
         'users': User.objects.all().order_by('username')
     }
     return render(request, 'home/admin_manage_users.html', {'template_data': template_data})
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_export_data(request):
+    """Admin-only page to export CSVs. Use ?type=users or ?type=messages to download.
+
+    GET without type shows a page with links.
+    GET with ?type=users returns users CSV.
+    GET with ?type=messages returns messages CSV.
+    """
+    export_type = request.GET.get('type')
+    if not export_type:
+        # show simple admin page with links
+        template_data = {'title': 'Export Data'}
+        return render(request, 'home/admin_export.html', {'template_data': template_data})
+
+    if export_type == 'users':
+        # export users: username,email,role,first_name,last_name,date_joined
+        from django.contrib.auth.models import User
+        rows = User.objects.all().select_related('profile')
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="users.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['id', 'username', 'email', 'first_name', 'last_name', 'role', 'date_joined'])
+        for u in rows:
+            role = ''
+            try:
+                role = u.profile.role
+            except Exception:
+                role = ''
+            writer.writerow([u.id, u.username, u.email, u.first_name, u.last_name, role, u.date_joined])
+        return response
+
+    if export_type == 'messages':
+        qs = Message.objects.all().select_related('sender', 'recipient')
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="messages.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['id', 'sender', 'recipient', 'subject', 'body', 'timestamp', 'parent_id', 'read'])
+        for m in qs.order_by('-timestamp'):
+            writer.writerow([m.id, m.sender.username if m.sender else '', m.recipient.username if m.recipient else '', m.subject, m.body, m.timestamp, m.parent.id if m.parent else '', m.read])
+        return response
+
+    if export_type == 'jobs':
+        # Export jobs: include id, title, company, location, job_type, salary, remote_onsite, visa_sponsorship, posted_by, created_at, updated_at
+        qs = Job.objects.all().select_related('posted_by')
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="jobs.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['id', 'title', 'company', 'location', 'job_type', 'salary', 'remote_onsite', 'visa_sponsorship', 'posted_by', 'created_at', 'updated_at'])
+        for j in qs.order_by('-created_at'):
+            posted_by = j.posted_by.username if j.posted_by else ''
+            writer.writerow([j.id, j.title, j.company, j.location, j.job_type, j.salary, j.remote_onsite, j.visa_sponsorship, posted_by, j.created_at, j.updated_at])
+        return response
+
+    # unknown type
+    messages.error(request, 'Unknown export type.')
+    return redirect('admin.manage_users')
 
 #admin
 def change_role(request, user_id, new_role):
@@ -369,3 +454,4 @@ def admin_delete_post(request, pk):
     # simple confirmation page
     template_data = {'title': 'Confirm Delete', 'post': post}
     return render(request, 'home/admin_confirm_delete.html', {'template_data': template_data})
+

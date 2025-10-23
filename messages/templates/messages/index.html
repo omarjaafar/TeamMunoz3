@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="display-6 fw-semibold">Send Message to Candidate</h1>
+      <p class="text-muted">Compose and send a message to a candidate</p>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <form method="post" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-6">
+              <label class="form-label">Recipient Username</label>
+              <input class="form-control" name="recipient" placeholder="Candidate's username" value="{{ request.POST.recipient|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Subject</label>
+              <input class="form-control" name="subject" placeholder="Message subject" value="{{ request.POST.subject|default:'' }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Message Body</label>
+              <textarea class="form-control" name="body" rows="5" placeholder="Write your message here..." required>{{ request.POST.body|default:'' }}</textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">Send Message</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-4">
+  <h2>{{ template_data.title }}</h2>
+  <hr>
+  <!--send messages-->
+  <h3>Send a Message</h3>
+  <form method="post" action="{% url 'messages.send_message' %}">
+    {% csrf_token %}
+    {% if template_data.reply_to %}
+      <input type="hidden" name="parent_id" value="{{ template_data.reply_to }}">
+    {% endif %}
+    <div class="mb-3">
+      <label for="recipient" class="form-label">To:</label>
+      <select class="form-select" id="recipient" name="recipient" required>
+        <option value="" disabled {% if not template_data.prefill_recipient %}selected{% endif %}>Select a recipient</option>
+        {% for user in template_data.users %}
+          <option value="{{ user.username }}" {% if template_data.prefill_recipient and template_data.prefill_recipient == user.username %}selected{% endif %}>{{ user.username }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="subject" class="form-label">Subject:</label>
+      <input type="text" class="form-control" id="subject" name="subject" required>
+    </div>
+    <div class="mb-3">
+      <label for="body" class="form-label">Message:</label>
+      <textarea class="form-control" id="body" name="body" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Message</button>
+  </form>
+</div>
+{% endblock %}
