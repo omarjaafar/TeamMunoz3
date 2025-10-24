@@ -1,5 +1,5 @@
 from django import forms
-from .models import Profile
+from .models import Profile, CandidateSavedSearch
 
 
 class ProfilePrivacyForm(forms.ModelForm):
@@ -72,4 +72,13 @@ class ProfileEditForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'LinkedIn, GitHub, portfolio URLs'
             }),
+        }
+        
+class CandidateSavedSearchForm(forms.ModelForm):
+    class Meta:
+        model = CandidateSavedSearch
+        fields = ("name", "email_enabled")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Name (optional)"}),
+            "email_enabled": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }

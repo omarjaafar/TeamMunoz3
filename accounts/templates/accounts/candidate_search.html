@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-3">Candidate Search</h3>
+
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+      <input class="form-control" type="text" name="q" value="{{ request.GET.q }}" placeholder="Keywords (headline, skills)">
+    </div>
+    <div class="col-md-3">
+      <input class="form-control" type="text" name="skills" value="{{ request.GET.skills }}" placeholder="Skills (comma separated)">
+    </div>
+    <div class="col-md-2">
+      <input class="form-control" type="text" name="location" value="{{ request.GET.location }}" placeholder="Location">
+    </div>
+    <div class="col-md-2">
+      <input class="form-control" type="text" name="education" value="{{ request.GET.education }}" placeholder="Education">
+    </div>
+    <div class="col-md-2">
+      <input class="form-control" type="number" name="exp_min" value="{{ request.GET.exp_min }}" placeholder="Min years">
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-primary" type="submit">Apply Filters</button>
+      <a class="btn btn-outline-secondary" href="{% url 'accounts.candidate_search' %}">Clear</a>
+
+      <a class="btn btn-outline-primary ms-auto"
+         href="{% url 'accounts.candidate_saved_search_create' %}?{{ request.META.QUERY_STRING }}">
+        Save this search
+      </a>
+    </div>
+  </form>
+
+  {% if profiles %}
+    <div class="list-group">
+      {% for p in profiles %}
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between">
+            <div>
+              <div class="fw-bold">{{ p.user.get_full_name|default:p.user.username }}</div>
+              <div class="text-muted small">{{ p.headline }}</div>
+              <div class="small">Skills: {{ p.skills }}</div>
+              {% if p.location %}<div class="small">Location: {{ p.location }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No candidates match your filters.</p>
+  {% endif %}
+</div>
+{% endblock %}

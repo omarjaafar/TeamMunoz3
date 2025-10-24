@@ -39,8 +39,9 @@
                 <a class="nav-link" href="{% url 'seeker.apply' %}">Apply</a>
                 <a class="nav-link" href="{% url 'seeker.status' %}">Status</a>
                 <a class="nav-link" href="{% url 'seeker.settings' %}">Settings</a>
-                <a class="nav-link" href="{% url 'recruiter.messages' %}">Messages</a>
               {% elif user.profile and user.profile.role == 'RECRUITER' %}
+                <a class="nav-link" href="{% url 'accounts.candidate_search' %}">Candidate Search</a>
+                <a class="nav-link" href="{% url 'accounts.candidate_saved_search_list' %}">Saved Candidate Searches</a>
                 <a class="nav-link" href="{% url 'jobs.index' %}">Post A Job</a>
                 <a class="nav-link" href="{% url 'recruiter.messages' %}">Messages</a>
                 <a class="nav-link" href="{% url 'recruiter.find_candidates' %}">Find Candidates</a>
