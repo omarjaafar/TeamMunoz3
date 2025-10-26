@@ -38,6 +38,7 @@
               {% if user.profile and user.profile.role == 'JOB_SEEKER' %}
                 <a class="nav-link" href="{% url 'seeker.apply' %}">Apply</a>
                 <a class="nav-link" href="{% url 'seeker.status' %}">Status</a>
+                <a class="nav-link" href="{% url 'gt_map' %}">Map</a> <!-- only job seekers wanted to see the map-->
                 <a class="nav-link" href="{% url 'seeker.settings' %}">Settings</a>
               {% elif user.profile and user.profile.role == 'RECRUITER' %}
                 <a class="nav-link" href="{% url 'accounts.candidate_search' %}">Candidate Search</a>

@@ -24,6 +24,10 @@ class Job(models.Model):
     description = models.TextField()
     remote_onsite = models.CharField(max_length=1, choices=REMOTE_ONSITE_CHOICES, default='O')
     visa_sponsorship = models.CharField(max_length=1, choices=VISA_SPONSORSHIP_CHOICES, default='N')
+    
+    #for map purposes
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     # every recruiter posts jobs. we get the jobs that are posted by that recruiter.
     # if the recruiter no longer exists, then all the jobs posted by them will also be deleted (on_delete=...)

@@ -1,88 +1,165 @@
 <!-- This is basically the formatting for the form that the recruiter fills out for posting a job on outdeed -->
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <div class="p-3">
-    <div class="container" style="max-width: 720px;">
-        <h2 class="mb-3">{{ template_data.title }}</h2>
-        <form method="post" class="vstack gap-3">
-            {% csrf_token %}
+  <div class="container" style="max-width: 720px;">
+    <h2 class="mb-3">{{ template_data.title }}</h2>
 
-            <div>
-                <label class="form-label">Title</label>
-                <input class="form-control" name="title" value="{{ template_data.job.title|default:'' }}" required>
-            </div>
+    <!-- BEGIN FORM -->
+    <form method="post" class="vstack gap-3">
+      {% csrf_token %}
 
-            <div>
-                <label class="form-label">Company</label>
-                <input class="form-control" name="company" value="{{ template_data.job.company|default:'' }}" required>
-            </div>
+      <div>
+        <label class="form-label">Title</label>
+        <input class="form-control" name="title" value="{{ template_data.job.title|default:'' }}" required>
+      </div>
 
-            <div>
-                <label class="form-label">Location</label>
-                <input class="form-control" name="location" value="{{ template_data.job.location|default:'' }}" required>
-            </div>
+      <div>
+        <label class="form-label">Company</label>
+        <input class="form-control" name="company" value="{{ template_data.job.company|default:'' }}" required>
+      </div>
 
-            <div>
-                <label class="form-label">Job Type</label>
-                <select class="form-select" name="job_type">
-                    <!-- we have a drop down menu that selects the type of job  -->
-                    {% with jt=template_data.job.job_type|default:'FT' %}
-                    <option value="FT" {% if jt == 'FT' %}selected{% endif %}>Full-time</option>
-                    <option value="PT" {% if jt == 'PT' %}selected{% endif %}>Part-time</option>
-                    <option value="IN" {% if jt == 'IN' %}selected{% endif %}>Internship</option>
-                    {% endwith %}
-                </select>
-            </div>
+      <div>
+        <label class="form-label">Location</label>
+        <input class="form-control" name="location" id="id_location"
+               value="{{ template_data.job.location|default:'' }}" required>
+        <small class="form-text text-muted">Type an address OR click on the map to pick an exact point.</small>
+      </div>
 
-            <div>
-                <label class="form-label">Salary</label>
-                <input class="form-control" name="salary" type="number" step="0.01"
-                    value="{{ template_data.job.salary|default:'' }}">
-            </div>
+      <!-- keep other fields unchanged -->
+      <div>
+        <label class="form-label">Job Type</label>
+        <select class="form-select" name="job_type">
+          {% with jt=template_data.job.job_type|default:'FT' %}
+          <option value="FT" {% if jt == 'FT' %}selected{% endif %}>Full-time</option>
+          <option value="PT" {% if jt == 'PT' %}selected{% endif %}>Part-time</option>
+          <option value="IN" {% if jt == 'IN' %}selected{% endif %}>Internship</option>
+          {% endwith %}
+        </select>
+      </div>
 
-            <div>
-                <label class="form-label">Description</label>
-                <textarea class="form-control" name="description"
-                    rows="5">{{ template_data.job.description|default:'' }}</textarea>
-            </div>
+      <div>
+        <label class="form-label">Salary</label>
+        <input class="form-control" name="salary" type="number" step="0.01"
+               value="{{ template_data.job.salary|default:'' }}">
+      </div>
 
-            <div>
-                <label class="form-label">Remote/Onsite</label>
-                <select class="form-select" name="remote_onsite">
-                    <!-- we have a drop down menu that selects the type of job  -->
-                    {% with jt=template_data.job.remote_onsite|default:'O' %}
-                    <option value="R" {% if jt == 'Remote' %}selected{% endif %}>Remote</option>
-                    <option value="O" {% if jt == 'Onsite' %}selected{% endif %}>Onsite</option>
-                    {% endwith %}
-                </select>
-            </div>
+      <div>
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="5">{{ template_data.job.description|default:'' }}</textarea>
+      </div>
 
-            <div>
-                <label class="form-label">Visa Sponsorship</label>
-                <select class="form-select" name="visa_sponsorship">
-                    <!-- we have a drop down menu that selects the type of job  -->
-                    {% with jt=template_data.job.visa_sponsorship|default:'N' %}
-                    <option value="Y" {% if jt == 'Yes' %}selected{% endif %}>Yes</option>
-                    <option value="N" {% if jt == 'No' %}selected{% endif %}>No</option>
-                    {% endwith %}
-                </select>
-            </div>
-            
-            <!-- this part is just the buttons at the bottom of the page
-            Save: after filling out details saves the profile of the job
-            Cancel: directly goes back to the index page
-            Delete: deletes the current post -->
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-success" type="submit">Save</button>
-                <a class="btn btn-secondary" href="{% url 'jobs.index' %}">Cancel</a>
+      <div>
+        <label class="form-label">Remote/Onsite</label>
+        <select class="form-select" name="remote_onsite">
+          {% with jt=template_data.job.remote_onsite|default:'O' %}
+          <option value="R" {% if jt == 'Remote' %}selected{% endif %}>Remote</option>
+          <option value="O" {% if jt == 'Onsite' %}selected{% endif %}>Onsite</option>
+          {% endwith %}
+        </select>
+      </div>
 
-                {% if template_data.job %}
-                <button class="btn btn-danger ms-auto" type="submit"
-                    formaction="{% url 'jobs.delete' template_data.job.id %}" formmethod="post"
-                    onclick="return confirm('Delete this job permanently?');">
-                    Delete
-                </button>
-                {% endif %}
-            </div>
-    </div>
-    {% endblock content %}
+      <div>
+        <label class="form-label">Visa Sponsorship</label>
+        <select class="form-select" name="visa_sponsorship">
+          {% with jt=template_data.job.visa_sponsorship|default:'N' %}
+          <option value="Y" {% if jt == 'Yes' %}selected{% endif %}>Yes</option>
+          <option value="N" {% if jt == 'No' %}selected{% endif %}>No</option>
+          {% endwith %}
+        </select>
+      </div>
+
+      <!-- HIDDEN inputs for lat/lng (will be set by the map picker) -->
+      <input type="hidden" name="latitude" id="id_latitude"
+             value="{{ template_data.job.latitude|default:'' }}">
+      <input type="hidden" name="longitude" id="id_longitude"
+             value="{{ template_data.job.longitude|default:'' }}">
+
+      <!-- MAP PICKER -->
+      <div>
+        <label class="form-label">Pick exact location</label>
+        <div id="job-picker" style="height: 320px; border-radius: 8px; margin-bottom: 1rem;"></div>
+        <small class="form-text text-muted">Click the map to set the job location. Drag the marker to adjust.</small>
+      </div>
+
+      <!-- buttons -->
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-success" type="submit">Save</button>
+        <a class="btn btn-secondary" href="{% url 'jobs.index' %}">Cancel</a>
+
+        {% if template_data.job %}
+        <button class="btn btn-danger ms-auto" type="submit"
+                formaction="{% url 'jobs.delete' template_data.job.id %}" formmethod="post"
+                onclick="return confirm('Delete this job permanently?');">
+          Delete
+        </button>
+        {% endif %}
+      </div>
+    </form>
+    <!-- END FORM -->
+
+  </div>
+</div>
+
+<!-- Leaflet CSS + JS (include them once; if you already include in base, remove duplicates) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+(function() {
+  // default center: Georgia Tech
+  const defaultLat = 33.7756;
+  const defaultLng = -84.3963;
+  const defaultZoom = 15;
+
+  const latEl = document.getElementById('id_latitude');
+  const lngEl = document.getElementById('id_longitude');
+
+  // Read initial values safely
+  const existingLat = parseFloat("{{ template_data.job.latitude|default:'' }}") || null;
+  const existingLng = parseFloat("{{ template_data.job.longitude|default:'' }}") || null;
+
+  const map = L.map('job-picker').setView(
+    existingLat && existingLng ? [existingLat, existingLng] : [defaultLat, defaultLng],
+    existingLat && existingLng ? 16 : defaultZoom
+  );
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  let marker = null;
+
+  if (existingLat && existingLng) {
+    marker = L.marker([existingLat, existingLng], { draggable: true }).addTo(map);
+    marker.bindPopup("Saved location").openPopup();
+    marker.on('dragend', function() {
+      const p = marker.getLatLng();
+      latEl.value = p.lat;
+      lngEl.value = p.lng;
+    });
+  }
+
+  // Click to set marker
+  map.on('click', function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    if (marker) {
+      marker.setLatLng(e.latlng);
+    } else {
+      marker = L.marker(e.latlng, { draggable: true }).addTo(map);
+      marker.on('dragend', function() {
+        const p = marker.getLatLng();
+        latEl.value = p.lat;
+        lngEl.value = p.lng;
+      });
+    }
+    latEl.value = lat;
+    lngEl.value = lng;
+  });
+})();
+</script>
+
+{% endblock content %}

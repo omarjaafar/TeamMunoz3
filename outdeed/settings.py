@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'jobs',
     'applications',
     'messages',
+    'mapview',
 ]
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

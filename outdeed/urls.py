@@ -24,4 +24,5 @@ urlpatterns = [
     path('jobs/', include('jobs.urls')),
     path("applications/", include("applications.urls")),
     path('messages/', include('messages.urls')),
+    path("map/", include("mapview.urls")),
 ]

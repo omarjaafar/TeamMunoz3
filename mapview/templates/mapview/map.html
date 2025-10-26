@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Job Map</h2>
+
+  <div class="mb-3">
+    <button id="locateBtn" class="btn btn-primary">Use my location</button>
+    <label class="ms-3">Radius (km): <span id="radiusLabel">5</span>
+      <input id="radius" type="range" min="1" max="50" value="5" />
+    </label>
+    <button id="findBtn" class="btn btn-success ms-2">Find nearby jobs</button>
+  </div>
+
+  <div id="map" style="height:600px; border-radius:8px;"></div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+let map = L.map('map').setView([33.7756, -84.3963], 14); // default GT
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+let markersLayer = L.layerGroup().addTo(map);
+let userMarker = null;
+let radiusCircle = null;
+let userLocation = null;
+
+// UI elements
+const radiusInput = document.getElementById('radius');
+const radiusLabel = document.getElementById('radiusLabel');
+const locateBtn = document.getElementById('locateBtn');
+const findBtn = document.getElementById('findBtn');
+
+radiusInput.addEventListener('input', () => {
+  radiusLabel.textContent = radiusInput.value;
+});
+
+function drawMarkers(jobs) {
+  markersLayer.clearLayers();
+  jobs.forEach(job => {
+    const m = L.marker([job.latitude, job.longitude]).addTo(markersLayer);
+    let popup = `<b>${job.title}</b><br>${job.description || ''}`;
+    if (job.distance_km !== undefined) {
+      popup += `<br><i>${job.distance_km} km away</i>`;
+    }
+    m.bindPopup(popup);
+  });
+}
+
+// call server-side endpoint to get nearby jobs
+function fetchNearbyJobs(lat, lng, radius) {
+  const url = new URL("{% url 'jobs.json' %}", window.location.origin);
+  url.searchParams.set('lat', lat);
+  url.searchParams.set('lng', lng);
+  url.searchParams.set('radius', radius);
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      drawMarkers(data);
+      if (data.length > 0) {
+        // fit to markers + user location if available
+        const group = L.featureGroup(markersLayer.getLayers());
+        if (userMarker) group.addLayer(userMarker);
+        map.fitBounds(group.getBounds().pad(0.2));
+      }
+    })
+    .catch(err => {
+      console.error("Failed to load jobs:", err);
+    });
+}
+
+// get user location
+locateBtn.addEventListener('click', () => {
+  if (!navigator.geolocation) return alert("Geolocation not supported");
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    userLocation = [lat, lng];
+    if (userMarker) userMarker.remove();
+    userMarker = L.marker(userLocation, {color: 'blue'}).addTo(map).bindPopup("You are here").openPopup();
+    map.setView(userLocation, 14);
+  }, err => {
+    alert("Could not get location: " + err.message);
+  });
+});
+
+// find nearby
+findBtn.addEventListener('click', () => {
+  const rad = parseFloat(radiusInput.value);
+  if (userLocation) {
+    // draw radius circle
+    if (radiusCircle) radiusCircle.remove();
+    radiusCircle = L.circle(userLocation, {radius: rad * 1000, color: 'blue', fillOpacity: 0.05}).addTo(map);
+    fetchNearbyJobs(userLocation[0], userLocation[1], rad);
+  } else {
+    alert("Please press 'Use my location' first (or allow location access).");
+  }
+});
+
+// Optional: load all jobs on page load (small dataset)
+fetch("{% url 'jobs.json' %}")
+  .then(r => r.json())
+  .then(data => {
+    // draw them as default, without distance
+    drawMarkers(data);
+  }).catch(()=>{});
+</script>
+{% endblock %}

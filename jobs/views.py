@@ -4,12 +4,24 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from applications.models import Application
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.urls import reverse
+from math import radians, sin, cos, sqrt, asin
+
+# Helper to safely parse floats from POST
+def safe_float(value):
+    try:
+        if value is None or value == '':
+            return None
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
 # Create your views here.
 
 @login_required
 def index(request):
-    #first we go to the jobs table in the database, then give me the rows that are 
+    # first we go to the jobs table in the database, then give me the rows that are 
     # created by the currently logged in user
     jobs = Job.objects.filter(posted_by=request.user)
     template_data = {
@@ -24,13 +36,15 @@ def index(request):
 @login_required
 def job_form(request, pk=None):
     job = None
-    # this checks if a pk for the job currently exists - if it doesn't return 404 error
-    # commenting this out would no longer show the data for each of the jobs posted!
     if pk is not None:
         job = get_object_or_404(Job, pk=pk, posted_by=request.user)
 
     if request.method == 'POST':
         data = request.POST
+        # parse lat/lng safely
+        lat = safe_float(data.get('latitude'))
+        lng = safe_float(data.get('longitude'))
+
         fields = {
             'title': (data.get('title') or '').strip(),
             'company': (data.get('company') or '').strip(),
@@ -38,24 +52,79 @@ def job_form(request, pk=None):
             'job_type': data.get('job_type') or 'FT',
             'salary': data.get('salary') or None,
             'description': (data.get('description') or '').strip(),
+            # include lat/lng so they are saved/updated when provided (None is fine)
+            'latitude': lat,
+            'longitude': lng,
         }
 
         if job is None:
-            #capture the instance, then redirect using its pk - define the fields dict here 
+            # create new job with lat/lng included
             job = Job.objects.create(posted_by=request.user, **fields)
-            return redirect(reverse('jobs.index'), pk=job.pk)
+            # redirect to index after create (original code tried to pass pk incorrectly)
+            return redirect('jobs.index')
 
-        # update the existing instance, then redirect
-        # the for-loop below iterates through the (key, value) pairs in the 'fields' dict
-        # for each field name (k) and submitted value (v), we set that attribute on the
-        # existing job instance, like setattr(job, 'title', 'New Title')
+        # update existing instance fields, save once after loop
         for k, v in fields.items():
             setattr(job, k, v)
-            job.save()
+        job.save()
         return redirect('jobs.index')  
 
     template_data = {'title': 'Add Job' if job is None else f'Edit: {job.title}', 'job': job}
     return render(request, 'jobs/form.html', {'template_data': template_data})
+
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    # Earth radius in km
+    R = 6371.0
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    return R * c
+
+def jobs_json(request):
+    """
+    GET params:
+    lat (float), lng (float), radius (km, float)  -> optional
+    Returns JSON list of jobs (optionally filtered by radius), each with distance (km).
+    """
+    lat = request.GET.get("lat")
+    lng = request.GET.get("lng")
+    radius = request.GET.get("radius")  # km
+
+    qs = Job.objects.filter(latitude__isnull=False, longitude__isnull=False)
+
+    # If lat/lng/radius provided, compute distances and filter.
+    if lat is not None and lng is not None and radius is not None:
+        try:
+            lat = float(lat); lng = float(lng); radius = float(radius)
+        except ValueError:
+            return HttpResponseBadRequest("lat, lng and radius must be numeric") #if given wrong information
+        results = []
+        for job in qs:
+            d = haversine_km(lat, lng, job.latitude, job.longitude)
+            if d <= radius:
+                results.append({
+                    "id": job.id,
+                    "title": job.title,
+                    "description": job.description,
+                    "latitude": job.latitude,
+                    "longitude": job.longitude,
+                    "distance_km": round(d, 3),
+                })
+        # sort by distance
+        results.sort(key=lambda x: x["distance_km"])
+        return JsonResponse(results, safe=False)
+
+    # Otherwise return all jobs (careful if many)
+    results = [{
+        "id": job.id,
+        "title": job.title,
+        "description": job.description,
+        "latitude": job.latitude,
+        "longitude": job.longitude,
+    } for job in qs]
+    return JsonResponse(results, safe=False)
 
 @login_required
 @require_POST
