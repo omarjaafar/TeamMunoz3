@@ -32,7 +32,10 @@
                                 {% endif %}
                             </div>
                         </a>
-                        <div class="mt-3 d-flex gap-2">
+                        <div class="mt-3 d-flex gap-2 flex-wrap">
+    <a href="{% url 'jobs.recommendations' job.id %}" class="btn btn-sm btn-success">
+        <i class="fas fa-user-check"></i> View Recommendations
+    </a>
     <a href="{% url 'applications:manage' job.id %}" class="btn btn-sm btn-outline-primary">
         Manage Applications
     </a>

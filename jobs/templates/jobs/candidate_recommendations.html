@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-3">
+    <div class="container">
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="mb-1">{{ template_data.title }}</h2>
+                    <p class="text-muted mb-0">
+                        <strong>Company:</strong> {{ template_data.job.company|default:"N/A" }} | 
+                        <strong>Location:</strong> {{ template_data.job.location|default:"N/A" }}
+                    </p>
+                </div>
+                <a href="{% url 'jobs.index' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Jobs
+                </a>
+            </div>
+            
+            {% if template_data.job.description %}
+            <div class="card border-0 bg-light mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Job Description</h6>
+                    <p class="card-text small mb-0">{{ template_data.job.description|truncatewords:50 }}</p>
+                    <a href="{% url 'jobs.edit' template_data.job.id %}" class="small">View full job posting</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if template_data.recommendations %}
+            <div class="mb-3">
+                <p class="text-muted mb-0">
+                    <i class="fas fa-users"></i> Found <strong>{{ template_data.recommendations|length }}</strong> 
+                    recommended candidates for this position (sorted by relevance)
+                </p>
+            </div>
+            
+            <div class="row g-3">
+                {% for rec in template_data.recommendations %}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card border h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-1">
+                                        {{ rec.candidate.user.username }}
+                                    </h5>
+                                    {% if rec.candidate.headline %}
+                                        <p class="text-muted small mb-2">{{ rec.candidate.headline|truncatewords:15 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="ms-2">
+                                    <span class="badge bg-primary rounded-pill" title="Relevance Score">
+                                        {{ rec.score }} pts
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if rec.candidate.location %}
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt"></i> {{ rec.candidate.location }}
+                                </small>
+                            </div>
+                            {% endif %}
+
+                            {% if rec.candidate.skills %}
+                            <div class="mb-2">
+                                <small class="text-muted d-block mb-1"><strong>Skills:</strong></small>
+                                <div class="small">{{ rec.candidate.skills|truncatewords:20 }}</div>
+                            </div>
+                            {% endif %}
+
+                            {% if rec.candidate.experience %}
+                            <div class="mb-2">
+                                <small class="text-muted d-block mb-1"><strong>Experience:</strong></small>
+                                <div class="small text-muted">{{ rec.candidate.experience|truncatewords:15 }}</div>
+                            </div>
+                            {% endif %}
+
+                            {% if rec.matched_skills %}
+                            <div class="mb-2 mt-auto">
+                                <small class="text-muted d-block mb-1"><strong>Matched Skills:</strong></small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for skill in rec.matched_skills %}
+                                        <span class="badge bg-success small text-white">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if rec.matched_keywords %}
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1"><strong>Other Matches:</strong></small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for keyword in rec.matched_keywords|slice:":10" %}
+                                        {% if keyword not in rec.matched_skills %}
+                                            <span class="badge bg-info bg-opacity-25 text-dark small">{{ keyword }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if rec.total_matches > 12 %}
+                                        <span class="badge bg-secondary small">+{{ rec.total_matches|add:"-12" }} more</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="mt-auto pt-2 border-top">
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'home.recruiter_send_messages' %}?recipient={{ rec.candidate.user.username }}" 
+                                       class="btn btn-sm btn-primary flex-fill">
+                                        <i class="fas fa-envelope"></i> Message
+                                    </a>
+                                    <a href="{% url 'jobs.edit' template_data.job.id %}" 
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-briefcase"></i> Job
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-user-search fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted mb-2">No candidate recommendations found</h5>
+                    <p class="text-muted mb-0">
+                        We couldn't find any candidates that match this job posting's requirements.<br>
+                        Try updating your job description with more specific skills or requirements.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{% url 'jobs.edit' template_data.job.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit Job Posting
+                        </a>
+                        <a href="{% url 'recruiter.find_candidates' %}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-search"></i> Search Candidates Manually
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: box-shadow .15s ease, transform .05s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock content %}
+
