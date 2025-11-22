@@ -1,5 +1,5 @@
 from django.contrib.auth.forms import UserCreationForm
-from .forms import SignupForm
+from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -17,21 +17,30 @@ from .forms import CandidateSavedSearchForm
 def signup(request):
     template_data = {'title': 'Sign Up'}
     if request.method == 'GET':
-        template_data['form'] = SignupForm()
+        template_data['form'] = UserCreationForm()
         return render(request, 'accounts/signup.html', {'template_data': template_data})
 
     elif request.method == 'POST':
-        form = SignupForm(request.POST)
+        form = UserCreationForm(request.POST)
+        # require email field even though we're using UserCreationForm
+        email = request.POST.get('email', '').strip()
+        if not email:
+            form.add_error(None, 'Email is required.')
+        elif User.objects.filter(email__iexact=email).exists():
+            form.add_error(None, 'An account with this email already exists.')
+
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.email = email
             role = request.POST.get('role', Profile.JOB_SEEKER)
             if role == 'ADMIN':
                 user.is_staff = True
                 user.is_superuser = True
-                user.save()
+            user.save()
             Profile.objects.create(user=user, role=role)
             auth_login(request, user)
             return redirect('home.index')
+
         else:
             template_data['form'] = form
             return render(request, 'accounts/signup.html', {'template_data': template_data})
