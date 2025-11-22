@@ -46,8 +46,14 @@ INSTALLED_APPS = [
     'mapview',
 ]
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "noreply@example.com"
+# Email configuration: default to console backend for development.
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'mariannglasier@gmail.com'
+EMAIL_HOST_PASSWORD = 'qohl jhep ymqc ukmr'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'Outdeed <mariannglasier@gmail.com>'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

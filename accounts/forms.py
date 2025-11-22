@@ -1,4 +1,7 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from .models import Profile, CandidateSavedSearch
 
 
@@ -82,3 +85,24 @@ class CandidateSavedSearchForm(forms.ModelForm):
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Name (optional)"}),
             "email_enabled": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+
+class SignupForm(UserCreationForm):
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={"class": "form-control"}))
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "password1", "password2")
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise ValidationError("An account with this email already exists.")
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data.get("email")
+        if commit:
+            user.save()
+        return user
