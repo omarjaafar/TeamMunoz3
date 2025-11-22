@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2>Conversation with {{ partner.username }}</h2>
+  <hr>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      {% for msg in messages_list %}
+        <div class="mb-3">
+          <div class="d-flex {% if msg.sender == request.user %}justify-content-end{% else %}justify-content-start{% endif %}">
+            <div class="p-2 rounded" style="background: {% if msg.sender == request.user %}#d1e7dd{% else %}#f8f9fa{% endif %}; max-width:70%;"> 
+              <div class="small text-muted">{{ msg.sender.username }} • {{ msg.timestamp|date:"M d, Y H:i" }}</div>
+              <div>{{ msg.body|linebreaks }}</div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <form method="post" action="{% url 'messages.send_message' %}">
+    {% csrf_token %}
+    <input type="hidden" name="recipient" value="{{ partner.username }}">
+    <input type="hidden" name="parent_id" value="{{ parent_id }}">
+    <div class="mb-3">
+      <label for="body" class="form-label">Message</label>
+      <textarea name="body" class="form-control" id="body" rows="3" placeholder="Message..." required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send</button>
+    <a href="{% url 'messages.index' %}" class="btn btn-link">Back to Conversations</a>
+  </form>
+</div>
+{% endblock %}

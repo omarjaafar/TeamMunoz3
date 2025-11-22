@@ -234,13 +234,40 @@ def recruiter_post_job(request):
 def recruiter_messages(request):
     template_data = {}
     template_data['title'] = 'Messages'
-    # messages addressed to the current user
-    template_data['messages'] = request.user.received_messages.all() if request.user.is_authenticated else []
+    if not request.user.is_authenticated:
+        template_data['conversations'] = []
+        template_data['recent_messages'] = []
+        template_data['users'] = User.objects.all().order_by('username')
+        return render(request, 'home/recruiter_messages.html', {'template_data': template_data})
+
+    user = request.user
+    # build conversation list: latest message per partner
+    from django.db.models import Q
+    msgs = Message.objects.filter(Q(sender=user) | Q(recipient=user)).order_by('-timestamp')
+    seen = set()
+    conversations = []
+    for m in msgs:
+        partner = m.sender if m.sender != user else m.recipient
+        if partner.id in seen:
+            continue
+        seen.add(partner.id)
+        unread_count = Message.objects.filter(sender=partner, recipient=user, read=False).count()
+        conversations.append({
+            'partner': partner,
+            'latest': m,
+            'unread': unread_count,
+        })
+
+    template_data['conversations'] = conversations
     # list of possible recipients for the send form
     template_data['users'] = User.objects.all().order_by('username')
     return render(request, 'home/recruiter_messages.html', {'template_data': template_data})
 
-
+def email_inbox(request):
+    template_data = {}
+    template_data['title'] = 'Email Inbox'
+    template_data['emails'] = []  # Placeholder for actual email data
+    return render(request, 'home/email_inbox.html', {'template_data': template_data})
 
 # recruiter: find candidates
 def is_recruiter(user):

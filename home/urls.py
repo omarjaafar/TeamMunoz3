@@ -22,6 +22,8 @@ urlpatterns = [
     path('recruiter/messages/', views.recruiter_messages, name='recruiter.messages'),
     path('recruiter/send/', views.recruiter_send_messages, name='home.recruiter_send_messages'),
     path('recruiter/candidates/', views.recruiter_find_candidates, name='recruiter.find_candidates'),
+    path('recruiter/send-email/', messages_views.send_email, name='home.send_email'),
+    path('recruiter/email-inbox/', views.email_inbox, name='messages.email_inbox'),
     
     # administrator only
     path('adminpanel/edit-posts/', views.admin_edit_posts, name='admin.edit_posts'), #original

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2>Send Email</h2>
+  <hr>
+  <form method="post" action="{% url 'messages.send_email' %}">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="recipient_email" class="form-label">To (select job seeker):</label>
+      <select class="form-select" id="recipient_email" name="recipient_email" required>
+        <option value="">-- Select a candidate --</option>
+        {% for user in template_data.jobseekers %}
+          <option value="{{ user.email }}">{{ user.username }} &lt;{{ user.email }}&gt;</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="subject" class="form-label">Subject:</label>
+      <input type="text" class="form-control" id="subject" name="subject" required>
+    </div>
+    <div class="mb-3">
+      <label for="body" class="form-label">Message:</label>
+      <textarea class="form-control" id="body" name="body" rows="6" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Email</button>
+    <a href="{% url 'messages.email_inbox' %}" class="btn btn-link">Back to Email Inbox</a>
+  </form>
+</div>
+{% endblock %}
