@@ -53,7 +53,7 @@ function drawMarkers(jobs) {
 
 // call server-side endpoint to get nearby jobs
 function fetchNearbyJobs(lat, lng, radius) {
-  const url = new URL("{% url 'jobs.json' %}", window.location.origin);
+  const url = new URL("{% url 'jobs_json' %}", window.location.origin);
   url.searchParams.set('lat', lat);
   url.searchParams.set('lng', lng);
   url.searchParams.set('radius', radius);
@@ -102,7 +102,7 @@ findBtn.addEventListener('click', () => {
 });
 
 // Optional: load all jobs on page load (small dataset)
-fetch("{% url 'jobs.json' %}")
+fetch("{% url 'jobs_json' %}")
   .then(r => r.json())
   .then(data => {
     // draw them as default, without distance
