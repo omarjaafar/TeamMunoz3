@@ -1,4 +1,5 @@
 from django.contrib.auth.forms import UserCreationForm
+from .forms import SignupForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -16,11 +17,11 @@ from .forms import CandidateSavedSearchForm
 def signup(request):
     template_data = {'title': 'Sign Up'}
     if request.method == 'GET':
-        template_data['form'] = UserCreationForm()
+        template_data['form'] = SignupForm()
         return render(request, 'accounts/signup.html', {'template_data': template_data})
 
     elif request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save()
             role = request.POST.get('role', Profile.JOB_SEEKER)

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2>Email Inbox</h2>
+  <hr>
+
+  {% if emails and emails.count > 0 %}
+    <div class="list-group">
+      {% for email in emails %}
+        <a href="{% url 'messages.email_thread' email.id %}" class="list-group-item list-group-item-action {% if not email.read %}list-group-item-warning{% endif %}">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ email.subject }}</h5>
+            <small>{{ email.timestamp|date:"M d, Y H:i" }}</small>
+          </div>
+          <p class="mb-1">From: {{ email.sender.username }} &lt;{{ email.sender.email }}&gt;</p>
+          <small>To: {{ email.recipient_email }}{% if email.recipient_user %} ({{ email.recipient_user.username }}){% endif %}</small>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No emails in your inbox.</p>
+  {% endif %}
+  <hr>
+  <a href="{% url 'recruiter.messages' %}" class="btn btn-secondary">Back to Messages</a>
+</div>
+{% endblock %}
