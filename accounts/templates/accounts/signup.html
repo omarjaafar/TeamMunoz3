@@ -11,10 +11,6 @@
             <form method="POST">
               {% csrf_token %}
               {{ template_data.form.as_p }}
-              <div class="mb-3">
-                <label for="id_email" class="form-label">Email</label>
-                <input type="email" name="email" id="id_email" class="form-control" required value="{{ request.POST.email|default:'' }}">
-              </div>
                 <!-- dropdown menu for user to select their role of choice -->
                 <p>
                   <label for="id_role">Create account as:</label>
