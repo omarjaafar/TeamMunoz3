@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html>
 {% load static %}
   <head>
@@ -31,22 +31,50 @@
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav ms-auto navbar-ml">
+            
             <a class="nav-link" href="{% url 'home.about' %}">About</a>
             <div class="vr bg-white mx-2 d-none d-lg-block"></div>
 
             {% if user.is_authenticated %}
+              
               {% if user.profile and user.profile.role == 'JOB_SEEKER' %}
                 <a class="nav-link" href="{% url 'seeker.apply' %}">Apply</a>
                 <a class="nav-link" href="{% url 'seeker.status' %}">Status</a>
-                <a class="nav-link" href="{% url 'gt_map' %}">Map</a> <!-- only job seekers wanted to see the map-->
+                <a class="nav-link" href="{% url 'gt_map' %}">Map</a>
                 <a class="nav-link" href="{% url 'seeker.settings' %}">Settings</a>
                 <a class="nav-link" href="{% url 'recruiter.messages' %}">Messages</a>
+
               {% elif user.profile and user.profile.role == 'RECRUITER' %}
-                <a class="nav-link" href="{% url 'accounts.candidate_search' %}">Candidate Search</a>
-                <a class="nav-link" href="{% url 'accounts.candidate_saved_search_list' %}">Saved Candidate Searches</a>
-                <a class="nav-link" href="{% url 'jobs.index' %}">Post A Job</a>
-                <a class="nav-link" href="{% url 'recruiter.messages' %}">Messages</a>
-                <a class="nav-link" href="{% url 'recruiter.find_candidates' %}">Find Candidates</a>
+                
+                <!-- ⭐ NEW DROPDOWN MENU FOR RECRUITERS -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="recruiterDropdown" 
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Recruiter Tools
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="recruiterDropdown">
+
+                      <li><a class="dropdown-item" href="{% url 'accounts.candidate_search' %}">
+                          Candidate Search</a></li>
+
+                      <li><a class="dropdown-item" href="{% url 'accounts.candidate_saved_search_list' %}">
+                          Saved Candidate Searches</a></li>
+
+                      <li><a class="dropdown-item" href="{% url 'jobs.index' %}">
+                          Post A Job</a></li>
+
+                      <li><a class="dropdown-item" href="{% url 'recruiter.messages' %}">
+                          Messages</a></li>
+
+                      <li><a class="dropdown-item" href="{% url 'recruiter.find_candidates' %}">
+                          Find Candidates</a></li>
+
+                      <li><a class="dropdown-item" href="{% url 'applicants_map' %}">
+                          Applicant Map</a></li>
+                    </ul>
+                </div>
+
               {% elif user.profile and user.profile.role == 'ADMIN' %}
                 <a class="nav-link" href="{% url 'admin.export' %}">Export Data</a>
                 <a class="nav-link" href="{% url 'admin.edit_posts' %}">Edit Posts</a>
@@ -57,13 +85,15 @@
                  href="{% url 'accounts.logout' %}"> Logout (
                  {{ user.username }} | 
                    {% if user.profile %}
-                   {{ user.profile.get_role_display }}
+                     {{ user.profile.get_role_display }}
                    {% endif %}
                  )</a>
+
             {% else %}
               <a class="nav-link" href="{% url 'accounts.login' %}">Login</a>
               <a class="nav-link" href="{% url 'accounts.signup' %}">Sign Up</a>
             {% endif %}
+
           </div>
         </div>
       </div>

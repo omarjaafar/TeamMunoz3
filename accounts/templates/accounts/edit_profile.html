@@ -6,6 +6,7 @@
 
   <form method="post">
     {% csrf_token %}
+
     {% for field in form %}
       <div class="mb-3">
         <label class="form-label">{{ field.label }}</label>
@@ -15,8 +16,73 @@
         {% endif %}
       </div>
     {% endfor %}
+
+    <!-- MAP PICKER FOR APPLICANT LOCATION -->
+    <h5 class="mt-4">Set Your Location</h5>
+    <p class="text-muted">Click the map to drop a pin or drag the pin to adjust your exact location.</p>
+
+    <div id="profile-map" style="height: 320px; border-radius: 8px; margin-bottom: 1rem;"></div>
+
     <button type="submit" class="btn btn-primary">Save Changes</button>
     <a href="{% url 'seeker.settings' %}" class="btn btn-outline-secondary">Cancel</a>
   </form>
 </div>
+
+<!-- Leaflet CSS + JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+(function() {
+  // Default map center: Georgia Tech
+  const defaultLat = 33.7756;
+  const defaultLng = -84.3963;
+
+  const latInput = document.getElementById("id_latitude");
+  const lngInput = document.getElementById("id_longitude");
+
+  // Read existing profile coordinates
+  const existingLat = parseFloat(latInput.value) || null;
+  const existingLng = parseFloat(lngInput.value) || null;
+
+  const map = L.map("profile-map").setView(
+    existingLat && existingLng ? [existingLat, existingLng] : [defaultLat, defaultLng],
+    existingLat && existingLng ? 16 : 14
+  );
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  let marker = null;
+
+  if (existingLat && existingLng) {
+    marker = L.marker([existingLat, existingLng], { draggable: true }).addTo(map);
+    marker.on("dragend", () => {
+      const p = marker.getLatLng();
+      latInput.value = p.lat;
+      lngInput.value = p.lng;
+    });
+  }
+
+  // Click to set or move marker
+  map.on("click", (e) => {
+    if (!marker) {
+      marker = L.marker(e.latlng, { draggable: true }).addTo(map);
+      marker.on("dragend", () => {
+        const p = marker.getLatLng();
+        latInput.value = p.lat;
+        lngInput.value = p.lng;
+      });
+    } else {
+      marker.setLatLng(e.latlng);
+    }
+
+    latInput.value = e.latlng.lat;
+    lngInput.value = e.latlng.lng;
+  });
+
+})();
+</script>
 {% endblock %}

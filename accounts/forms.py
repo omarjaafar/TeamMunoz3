@@ -40,7 +40,7 @@ class ProfilePrivacyForm(forms.ModelForm):
 class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['headline', 'location', 'skills', 'education', 'projects', 'experience', 'links']
+        fields = ['headline', 'location', 'skills', 'education', 'projects', 'experience', 'links', 'latitude', 'longitude',]
         widgets = {
             'headline': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -75,6 +75,9 @@ class ProfileEditForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'LinkedIn, GitHub, portfolio URLs'
             }),
+
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
         }
         
 class CandidateSavedSearchForm(forms.ModelForm):

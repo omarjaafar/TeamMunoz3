@@ -25,6 +25,9 @@ class Profile(models.Model):
     projects = models.TextField(blank=True)
     experience = models.TextField(blank=True)
     links = models.TextField(blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+
 
     show_headline = models.BooleanField(default=True)
     show_location = models.BooleanField(default=True)

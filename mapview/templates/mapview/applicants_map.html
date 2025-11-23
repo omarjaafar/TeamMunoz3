@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Applicant Cluster Map</h2>
+    <p class="text-muted">This map shows all applicants who applied to your posted jobs.</p>
+
+    <div id="applicantMap" style="height: 600px; border-radius: 8px;"></div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<!-- MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script>
+(function() {
+
+    // Initialize map centered around Georgia Tech (default)
+    const map = L.map("applicantMap").setView([33.7756, -84.3963], 12);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    // Cluster group
+    const markers = L.markerClusterGroup();
+
+    // Fetch applicant JSON
+    fetch("{% url 'applicants_json' %}")
+        .then(r => r.json())
+        .then(data => {
+            data.forEach(applicant => {
+                if (!applicant.latitude || !applicant.longitude) return;
+
+                const marker = L.marker([applicant.latitude, applicant.longitude]);
+
+                const popupHtml = `
+                    <b>${applicant.username}</b><br>
+                    ${applicant.headline || ""}<br>
+                    <i>${applicant.location || ""}</i><br>
+                    Applied to <b>${applicant.applications_count}</b> of your jobs
+                `;
+
+                marker.bindPopup(popupHtml);
+                markers.addLayer(marker);
+            });
+
+            map.addLayer(markers);
+            if (markers.getLayers().length > 0) {
+                map.fitBounds(markers.getBounds().pad(0.2));
+            }
+        })
+        .catch(err => console.error("Error loading applicants:", err));
+
+})();
+</script>
+
+{% endblock %}
