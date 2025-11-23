@@ -17,7 +17,10 @@ class Message(models.Model):
 
 
 class EmailMessage(models.Model):
-    sender = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='sent_email_messages')
+    # sender may be an internal User or an external email address (inbound messages)
+    sender = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.SET_NULL, related_name='sent_email_messages')
+    # store sender email for external senders
+    sender_email = models.EmailField(max_length=254, null=True, blank=True)
     recipient_user = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.SET_NULL, related_name='received_email_messages')
     recipient_email = models.EmailField(max_length=254)
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
@@ -29,5 +32,12 @@ class EmailMessage(models.Model):
     read = models.BooleanField(default=False)
 
     def __str__(self):
+        sender_repr = None
+        if self.sender:
+            sender_repr = self.sender.username
+        elif self.sender_email:
+            sender_repr = self.sender_email
+        else:
+            sender_repr = 'unknown'
         ru = self.recipient_user.username if self.recipient_user else self.recipient_email
-        return f"Email from {self.sender.username} to {ru} | {self.subject}"
+        return f"Email from {sender_repr} to {ru} | {self.subject}"

@@ -164,6 +164,7 @@ def send_email(request):
 
             em_kwargs = {
                 'sender': request.user,
+                'sender_email': request.user.email if getattr(request.user, 'email', None) else None,
                 'recipient_user': recipient_user,
                 'recipient_email': recipient_email,
                 'subject': subject,
@@ -193,6 +194,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
 def send_mail_page(request):
     context = {}
@@ -218,12 +221,54 @@ def send_mail_page(request):
 def email_inbox(request):
     # show emails sent to the logged-in user's email address or addressed to their user account
     user_email = request.user.email
-    inbox_q = Q(recipient_user=request.user)
+    # include emails where the user is recipient (by user or by email) OR the user is the sender (so sent messages appear too)
+    inbox_q = Q(recipient_user=request.user) | Q(sender=request.user)
     if user_email:
         inbox_q = inbox_q | Q(recipient_email__iexact=user_email)
 
     emails = EmailMessage.objects.filter(inbox_q).order_by('-timestamp')
     return render(request, 'home/email_inbox.html', {'emails': emails, 'template_data': {'title': 'Email Inbox'}})
+
+
+@csrf_exempt
+def receive_inbound_email(request):
+    """
+    Simple inbound webhook endpoint to record incoming emails.
+    Accepts POST requests (e.g., from SendGrid Inbound Parse or similar) and creates an EmailMessage record.
+    Expected form fields: 'from' (sender email), 'to' (recipient email), 'subject', 'text' or 'body'.
+    WARNING: This endpoint is intentionally simple. In production you should validate source, sign requests, and protect it.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    from_addr = request.POST.get('from') or request.POST.get('sender') or request.POST.get('From')
+    to_addr = request.POST.get('to') or request.POST.get('recipient') or request.POST.get('To')
+    subject = request.POST.get('subject') or ''
+    body = request.POST.get('text') or request.POST.get('body') or request.POST.get('html') or ''
+
+    if not to_addr:
+        return JsonResponse({'error': 'to field required'}, status=400)
+
+    recipient_user = None
+    try:
+        recipient_user = User.objects.get(email__iexact=to_addr)
+    except User.DoesNotExist:
+        recipient_user = None
+
+    try:
+        EmailMessage.objects.create(
+            sender=None,
+            sender_email=from_addr,
+            recipient_user=recipient_user,
+            recipient_email=to_addr,
+            subject=subject,
+            body=body,
+            sent_ok=True,
+        )
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'status': 'ok'})
 
 
 def _collect_thread(root):
@@ -264,6 +309,7 @@ def email_thread(request, email_id):
         messages_list.append({
             'id': msg_obj.id,
             'sender': msg_obj.sender,
+            'sender_email': msg_obj.sender_email,
             'recipient_email': msg_obj.recipient_email,
             'recipient_user': msg_obj.recipient_user,
             'subject': msg_obj.subject,
@@ -281,8 +327,8 @@ def email_thread(request, email_id):
                 mobj.read = True
                 mobj.save(update_fields=['read'])
 
-    # prepare reply defaults
-    original_sender_email = email.sender.email
+    # prepare reply defaults: use user.email if sender is a User, otherwise fall back to sender_email
+    original_sender_email = email.sender.email if email.sender and getattr(email.sender, 'email', None) else email.sender_email
     root_subject = root.subject
 
     return render(request, 'home/email_view.html', {
