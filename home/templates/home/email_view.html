@@ -10,7 +10,15 @@
         {% for msg in messages_list %}
           <div style="margin-left: {{ msg.depth|default:0 }}rem; padding: .5rem; border-left: 2px solid #eee;">
             <div class="d-flex justify-content-between">
-              <strong>{{ msg.sender.username }}</strong>
+              <strong>
+                {% if msg.sender %}
+                  {{ msg.sender.username }} &lt;{{ msg.sender.email }}&gt;
+                {% elif msg.sender_email %}
+                  {{ msg.sender_email }}
+                {% else %}
+                  Unknown
+                {% endif %}
+              </strong>
               <small class="text-muted">{{ msg.timestamp|date:"M d, Y H:i" }}</small>
             </div>
             <div class="mb-2"><em>{{ msg.subject }}</em></div>

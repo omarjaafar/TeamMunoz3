@@ -12,7 +12,15 @@
             <h5 class="mb-1">{{ email.subject }}</h5>
             <small>{{ email.timestamp|date:"M d, Y H:i" }}</small>
           </div>
-          <p class="mb-1">From: {{ email.sender.username }} &lt;{{ email.sender.email }}&gt;</p>
+          <p class="mb-1">From: 
+            {% if email.sender %}
+              {{ email.sender.username }} &lt;{{ email.sender.email }}&gt;
+            {% elif email.sender_email %}
+              {{ email.sender_email }}
+            {% else %}
+              Unknown
+            {% endif %}
+          </p>
           <small>To: {{ email.recipient_email }}{% if email.recipient_user %} ({{ email.recipient_user.username }}){% endif %}</small>
         </a>
       {% endfor %}
