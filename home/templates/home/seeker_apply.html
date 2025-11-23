@@ -29,10 +29,12 @@
                                     <p class="mt-2 text-muted small mb-0">{{ job.description|truncatewords:18 }}</p>
                                 </div>
                                 <div class="card-footer bg-transparent border-0 pt-0">
-                                    <form method="post" action="{% url 'jobs.apply' job.pk %}">
-                                        {% csrf_token %}
-                                        <button class="btn btn-outline-primary w-100">Apply</button>
-                                    </form>
+                                    <button type="button"
+                                        class="btn btn-success btn-lg fw-bold w-100" 
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#applyNoteModal-{{ job.pk }}">
+                                        <i class="fas fa-paper-plane me-2"></i>Apply Now
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -234,6 +236,34 @@
                     </div>
                 </div>
             </div>
+        </div>
+        {% endfor %}
+        {% for job in template_data.recommended_jobs %}
+        <div class="modal fade"
+            id="applyNoteModal-{{ job.pk }}"
+            data-bs-backdrop="static"
+            data-bs-keyboard="false"
+            tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <form method="post" action="{% url 'jobs.apply' job.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                <h5 class="modal-title">Add a quick note (optional)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                <p class="text-muted mb-2">A sentence or two to personalize your application.</p>
+                <textarea name="note" rows="4" class="form-control"
+                            placeholder="Why you're a fit, interest in the role, etc."></textarea>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-success">Submit Application</button>
+                </div>
+            </form>
+            </div>
+        </div>
         </div>
         {% endfor %}
         {% for job in template_data.jobs %}
